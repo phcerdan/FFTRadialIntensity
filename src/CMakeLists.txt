@@ -12,10 +12,14 @@ find_package(OpenCV)
 include_directories( ${OpenCV_INCLUDE_DIRS})
 message(status "** IncludeDirs: ${OpenCV_INCLUDE_DIRS}")
 # message(status "** Libraries: ${OpenCV_LIBS}")
+find_package(Boost COMPONENTS 
+        filesystem	system
+        program_options
+        REQUIRED)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 add_executable(SAXSsim SAXSsim.cpp)
 include_directories(${IPP_LIB_FOLDER})
-target_link_libraries(SAXSsim ${OpenCV_LIBS} )
-
+target_link_libraries(SAXSsim ${OpenCV_LIBS} ${Boost_LIBRARIES} )
 # TEST
 ### Google TEST AND MOCK
 # There must be an environment variable (in .bashrc or profile.d)

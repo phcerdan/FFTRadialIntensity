@@ -16,12 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef HISTO1D_H_
-#define HISTO1D_H_
+#ifndef HISTO_H_
+#define HISTO_H_
 #include <vector>
 #include <algorithm>
 #include <utility>
 #include <stdexcept>
+#include <cmath>
 template <typename T, typename Container>
 T variance_welford(const Container& xs)
 {
@@ -36,7 +37,7 @@ T variance_welford(const Container& xs)
     return S / (N-1);
 }
 
-template <typename T>
+template <typename T, typename PRECI = double>
 struct Histo {
     Histo() = default;
     Histo( const std::vector<T> &input_array, int input_bins = 0 ):
@@ -50,16 +51,23 @@ struct Histo {
             bins      = p.first;
             bin_width = p.second;
         } else {
-            bin_width = ( range.second - range.first ) / static_cast<T>(bins);
+            bin_width = ( range.second - range.first ) / static_cast<PRECI>(bins);
         }
 
-        // FillHisto();
+        FillHisto();
     };
-    this->hist.
     std::vector<T> & FillHisto(){
+        // resize() hist to access the bins without push_backs.
+        // reserve() only allocate memory, but capacity is not changed.
+        hist.resize(bins);
+        std::for_each(std::begin(hist), std::end(hist),
+                [](T & vh){ vh = 0; });
         std::for_each(std::begin(data),std::end(data),
                 [this](const T & v){
-                    hist[ static_cast<int>( v/bin_width) ]++;
+                    auto x = v / bin_width;
+                    auto t = std::trunc( x ) ;
+                    if (t==x && t!=range.first) hist[t - 1]++;
+                    else hist[t]++;
                 });
         return hist;
     };
@@ -69,11 +77,11 @@ struct Histo {
     std::vector<T> data;
     int bins{0};
     std::pair<T,T> range;
-    T bin_width;
+    PRECI bin_width;
     std::vector<T> hist;
     enum {Scotts = 0};
 private:
-    std::pair<int,T> CalculateOptimalBinsAndWidth(const std::vector<T> & in, int method = Scotts){
+    std::pair<int,PRECI> CalculateOptimalBinsAndWidth(const std::vector<T> & in, int method = Scotts){
         switch(method) {
         case Scotts:
              return ScottsMethod(in,range);
@@ -84,10 +92,11 @@ private:
         return ScottsMethod(in, range);
     };
 
-    std::pair<int,T> ScottsMethod(const std::vector<T> &in, const std::pair<T,T> &rang){
-        double sigma = variance_welford<double,std::vector<T>>(in);
-        T width  = 3.5 * sqrt(sigma) / static_cast<double>( in.size() );
+    std::pair<int,PRECI> ScottsMethod(const std::vector<T> &in, const std::pair<T,T> &rang){
+        PRECI sigma = variance_welford<PRECI,std::vector<T>>(in);
+        PRECI width  = 3.5 * sqrt(sigma) / static_cast<PRECI>( in.size() );
         int n    = std::ceil( (rang.second - rang.first) / width);
+        n++;
         return std::make_pair (n,width);
     };
 };

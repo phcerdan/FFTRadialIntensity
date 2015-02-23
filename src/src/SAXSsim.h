@@ -19,18 +19,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "opencv2/core/core.hpp"
 #include <string>
+#include "histo.h"
 class SAXSsim
 {
 public:
     SAXSsim() = default;
     SAXSsim(std::string imgName);
     virtual ~SAXSsim ();
-    void Read();
-    cv::Mat & DFT();
+    cv::Mat & Read(std::string imgName);
+    cv::Mat & DFT(cv::Mat & realSpaceMatrix);
+    Histo<double> & Scatter(cv::Mat & dualSpaceMatrix);
     void Show();
 private:
     std::string inputName_;
     cv::Mat I_;
-    cv::Mat F_;
+    cv::Mat dftMat_;
 };
 #endif

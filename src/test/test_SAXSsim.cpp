@@ -17,9 +17,15 @@ string SAXSsimTest::imgTiny{"./fixtures/imgTiny.tiff"};
 shared_ptr<SAXSsim> SAXSsimTest::sim;// = make_shared<SAXSsim>(imgTiny);
 
 TEST_F(SAXSsimTest,ReadImages){
-    sim->Read();
+    sim->Read(imgTiny);
 }
 TEST_F(SAXSsimTest,DFT){
-    sim->DFT();
+    auto I = sim->Read(imgTiny);
+    sim->DFT(I);
     // sim->Show();
+}
+TEST_F(SAXSsimTest, Scatter){
+    auto I = sim->Read(imgTiny);
+    auto D = sim->DFT(I);
+    sim->Scatter(D);
 }

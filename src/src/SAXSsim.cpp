@@ -9,25 +9,26 @@ using namespace std;
 SAXSsim::SAXSsim(string inputName) :
     inputName_{inputName}
 {
-    Read();
-    DFT();
+    Read(inputName_);
+    DFT(I_);
     // Show();
 }
 
 SAXSsim::~SAXSsim(){}
 
-void SAXSsim::Read(){
-    I_ = imread(inputName_.c_str(), IMREAD_GRAYSCALE);
+Mat& SAXSsim::Read(string inputName){
+    I_ = imread(inputName.c_str(), IMREAD_GRAYSCALE);
     if(I_.empty()) throw
-        runtime_error("Read failed for image: " + inputName_ + " .Empty matrix");
+        runtime_error("Read failed for image: " + inputName + " .Empty matrix");
+    return I_;
 }
 
-Mat& SAXSsim::DFT(){
+Mat& SAXSsim::DFT(Mat &I){
     // Create a new padded image with borders added to original image.
     Mat padded;
-    int m = getOptimalDFTSize( I_.rows );
-    int n = getOptimalDFTSize( I_.cols );
-    copyMakeBorder(I_, padded, 0, m - I_.rows, 0, n - I_.cols, BORDER_CONSTANT, Scalar::all(0));
+    int m = getOptimalDFTSize( I.rows );
+    int n = getOptimalDFTSize( I.cols );
+    copyMakeBorder(I, padded, 0, m - I.rows, 0, n - I.cols, BORDER_CONSTANT, Scalar::all(0));
     // The result of dft is complex:
     Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
     Mat complexI;
@@ -58,12 +59,17 @@ Mat& SAXSsim::DFT(){
     q1.copyTo(tmp);
     q2.copyTo(q1);
     tmp.copyTo(q2);
-    F_ = magI.clone();
-    normalize(F_, F_, 0, 1, NORM_MINMAX, -1, Mat());
-    return F_;
+    dftMat_ = magI.clone();
+    normalize(dftMat_, dftMat_, 0, 1, NORM_MINMAX, -1, Mat());
+    return dftMat_;
 }
+
+Histo<double> & SAXSsim::Scatter(Mat& dftMat){
+    // return histogram;
+}
+
 void SAXSsim::Show(){
-    imshow("Input Image"       , I_   );
-    imshow("DFT:Magnitude", F_);
+    imshow("Input Image"  , I_   );
+    imshow("DFT:Magnitude", dftMat_);
     waitKey();
 }

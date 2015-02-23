@@ -26,7 +26,7 @@ public:
     SAXSsim(std::string imgName);
     virtual ~SAXSsim ();
     void Read();
-    cv::Mat & FFT();
+    cv::Mat & DFT();
     void Show();
 private:
     std::string inputName_;

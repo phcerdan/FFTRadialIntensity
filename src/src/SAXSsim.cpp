@@ -10,19 +10,19 @@ SAXSsim::SAXSsim(string inputName) :
     inputName_{inputName}
 {
     Read();
-    FFT();
-    Show();
+    DFT();
+    // Show();
 }
 
 SAXSsim::~SAXSsim(){}
 
 void SAXSsim::Read(){
-    I_ = imread(inputName_.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+    I_ = imread(inputName_.c_str(), IMREAD_GRAYSCALE);
     if(I_.empty()) throw
         runtime_error("Read failed for image: " + inputName_ + " .Empty matrix");
 }
 
-Mat& SAXSsim::FFT(){
+Mat& SAXSsim::DFT(){
     // Create a new padded image with borders added to original image.
     Mat padded;
     int m = getOptimalDFTSize( I_.rows );
@@ -40,8 +40,6 @@ Mat& SAXSsim::FFT(){
     // Switch to logscale.
     magI += Scalar::all(1);
     log(magI,magI);
-    imshow("padded"       , padded   );
-    imshow("magI"       , magI   );
     //TODO is that & a bit operator to crop back the image?
     magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
     int cx = magI.cols/2;
@@ -61,11 +59,11 @@ Mat& SAXSsim::FFT(){
     q2.copyTo(q1);
     tmp.copyTo(q2);
     F_ = magI.clone();
-    normalize(F_, F_, 0, 255, NORM_MINMAX, -1, Mat());
+    normalize(F_, F_, 0, 1, NORM_MINMAX, -1, Mat());
     return F_;
 }
 void SAXSsim::Show(){
     imshow("Input Image"       , I_   );
-    imshow("spectrum magnitude", F_);
+    imshow("DFT:Magnitude", F_);
     waitKey();
 }

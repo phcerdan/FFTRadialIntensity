@@ -64,7 +64,7 @@ Mat& SAXSsim::DFT(Mat &I){
     return dftMat_;
 }
 
-Histo<double> & SAXSsim::Scatter(Mat& dftMat){
+histo::Histo<double> & SAXSsim::Scatter(Mat& dftMat){
     // return histogram;
 }
 

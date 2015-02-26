@@ -23,6 +23,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <utility>
 #include <stdexcept>
 #include <cmath>
+#include <iostream>
+namespace histo {
+/// CalculateBreaks Methods.
+enum breaks_method {Scott = 0};
+
+template<typename T, typename PRECI = double>
+std::vector<T> GenerateBreaksFromRangeAndBins(const T& low, const T& upper, const unsigned long int &bins){
+    std::vector<T> breaks(bins+1);
+    T width = (upper - low)/ static_cast<PRECI>(bins);
+    for (auto i = 0; i!=bins+1; i++){
+        breaks[i] = low + i*width;
+    }
+    return breaks;
+};
+
+template<typename T, typename PRECI = double>
+std::vector<T> GenerateBreaksFromRangeAndBins(const std::pair<T,T> &range_low_upper, const unsigned long int &bins){
+   T low   = range_low_upper.first;
+   T upper = range_low_upper.second;
+   return GenerateBreaksFromRangeAndBins<T, PRECI>(low, upper, bins);
+};
+
+/// Calculate variance for Scotts method.
 template <typename T, typename Container>
 T variance_welford(const Container& xs)
 {
@@ -37,69 +60,142 @@ T variance_welford(const Container& xs)
     return S / (N-1);
 }
 
-template <typename T, typename PRECI = double>
+/***************PRECISE COMPARISONS TEMPLATE UTILITIES*******************/
+/**@addtogroup PreciseComparisson
+ * PreciseComparisson Template utilities
+ * @{ */
+/** Precise comparison: equal than.
+* @param v1 type T, variable 1 to compare
+* @param v2 type T, variable 2 to compare
+* @return bool
+*/
+template<typename T>
+bool isequalthan(const T& v1, const T& v2)
+{
+    return std::abs(v1-v2)<= std::numeric_limits<T>::epsilon();
+}
+/** Precise comparison: lesser than.
+ * @param v1 type T, variable 1 to compare
+ * @param v2 type T, variable 2 to compare
+ * @return bool
+ */
+template<typename T>
+bool islesserthan(const T& v1, const T& v2)
+{
+    return v1< std::numeric_limits<T>::epsilon() + v2;
+}
+/** Precise comparison: greater than.
+ * @param v1 type T, variable 1 to compare
+ * @param v2 type T, variable 2 to compare
+ * @return bool
+ */
+template<typename T>
+bool isgreaterthan(const T& v1, const T& v2)
+{
+    return v1 > std::numeric_limits<T>::epsilon() + v2;
+}
+/** @} */
+
+class histo_error : public std::runtime_error {
+public:
+    histo_error(const std::string & s) : std::runtime_error(s){ };
+
+};
+
+/** Simple Histogram. PRECI is the precission of stored non-int values. PRECI_INTEGER is the preci for integer values. T is the data type. PRECI should be the same type as T, except when T is int.
+ *
+*/
+template <typename T, typename PRECI = double, typename PRECI_INTEGER = unsigned long int>
 struct Histo {
     Histo() = default;
-    Histo( const std::vector<T> &input_array, int input_bins = 0 ):
-    data{input_array},
-    bins{input_bins}
+    Histo( const std::vector<T> &data, histo::breaks_method method = Scott ):
+    bins{0}
     {
         auto range_ptr = std::minmax_element(data.begin(), data.end());
-        range = std::make_pair(*range_ptr.first, *range_ptr.second);
-        if (input_bins == 0) {
-            auto p    = CalculateOptimalBinsAndWidth(data);
-            bins      = p.first;
-            bin_width = p.second;
+        range     = std::make_pair(*range_ptr.first, *range_ptr.second);
+        breaks    = CalculateBreaks(data, range, method);
+        bins      = static_cast<decltype(bins)>( breaks.size() - 1);
+        ResetCounts();
+        FillHisto(data);
+    };
+    Histo(const std::vector<T> &data, std::pair<T,T> input_range, histo::breaks_method method = Scott ){
+        breaks    = CalculateBreaks(data, range, method);
+        bins      = static_cast<decltype(bins)>( breaks.size() - 1 );
+        ResetCounts();
+        FillHisto(data);
+    };
+    Histo(const std::vector<T> &data, std::vector<T> &input_breaks) {
+        breaks(input_breaks);
+        bins      = static_cast<decltype(bins)>( breaks.size() - 1 );
+        ResetCounts();
+        FillHisto(data);
+    };
+
+    unsigned long int IndexFromValue(const T &value){
+        unsigned long int lo{0},hi{bins}, newb; // include right border in the last bin.
+        if(value >= breaks[lo] && (value < breaks[hi] || isequalthan(value,breaks[hi]) )){
+            while( hi - lo >= 2){
+                newb = (hi-lo)/2;
+                if (value >= breaks[newb]) lo = newb;
+                else hi = newb;
+            }
         } else {
-            bin_width = ( range.second - range.first ) / static_cast<PRECI>(bins);
+            throw histo_error(" Value: "+ std::to_string(value) +  " is out of bonds");
         }
 
-        FillHisto();
+        return lo;
     };
-    std::vector<T> & FillHisto(){
+
+    void ResetCounts(){
         // resize() hist to access the bins without push_backs.
         // reserve() only allocate memory, but capacity is not changed.
-        hist.resize(bins);
-        std::for_each(std::begin(hist), std::end(hist),
-                [](T & vh){ vh = 0; });
+        counts.resize(bins);
+        std::for_each(std::begin(counts), std::end(counts),
+                [](PRECI_INTEGER & vh){ vh = 0; });
+    };
+
+    std::vector<PRECI_INTEGER>& FillHisto(const std::vector<T> &data){
         std::for_each(std::begin(data),std::end(data),
                 [this](const T & v){
-                    auto x = v / bin_width;
-                    auto t = std::trunc( x ) ;
-                    if (t==x && t!=range.first) hist[t - 1]++;
-                    else hist[t]++;
+                    auto i   = IndexFromValue(v);
+                    counts[i]++;
                 });
-        return hist;
+        return counts;
     };
 
-    T* get_hist_ptr() { return hist.data;};
-
-    std::vector<T> data;
-    int bins{0};
+    unsigned long int bins{0};
     std::pair<T,T> range;
-    PRECI bin_width;
-    std::vector<T> hist;
-    enum {Scotts = 0};
+    std::vector<T> breaks;
+    std::vector<PRECI_INTEGER> counts;
 private:
-    std::pair<int,PRECI> CalculateOptimalBinsAndWidth(const std::vector<T> & in, int method = Scotts){
+    std::vector<T>& CalculateBreaks(const std::vector<T> & data, const std::pair<T,T> & rang, histo::breaks_method method ){
         switch(method) {
-        case Scotts:
-             return ScottsMethod(in,range);
+        case Scott:
+             return ScottMethod(data,rang);
              break;
         default:
-             throw std::runtime_error("No Method selected to calculate automatically bins and width");
+             throw histo_error("No Method selected to calculate automatically breaks");
         }
-        return ScottsMethod(in, range);
     };
 
-    std::pair<int,PRECI> ScottsMethod(const std::vector<T> &in, const std::pair<T,T> &rang){
-        PRECI sigma = variance_welford<PRECI,std::vector<T>>(in);
-        PRECI width  = 3.5 * sqrt(sigma) / static_cast<PRECI>( in.size() );
-        int n    = std::ceil( (rang.second - rang.first) / width);
-        n++;
-        return std::make_pair (n,width);
+    std::vector<T>& ScottMethod(const std::vector<T> &data, const std::pair<T,T> &rang){
+        PRECI sigma = variance_welford<PRECI,std::vector<T>>(data);
+        PRECI width  = 3.5 * sqrt(sigma) / static_cast<PRECI>( data.size() );
+        unsigned long int n    = std::ceil( (rang.second - rang.first) / width);
+        breaks.resize(n);
+        for (unsigned long int i = 0; i!=n; i++){
+            breaks[i] = range.first + i*width;
+        }
+        // Just in case...
+        while(breaks.back() < range.second){
+            breaks.push_back((n+1)*width);
+            n++;
+        }
+        // std::cout<< "n is: " << n <<" width is: "<< width  <<std::endl;
+        // std::for_each(std::begin(breaks), std::end(breaks), [](const T& v) {std::cout<<v <<std::endl;});
+        return breaks;
     };
 };
 
-
+} // End of namespace histo
 #endif

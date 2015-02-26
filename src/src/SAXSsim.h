@@ -28,7 +28,7 @@ public:
     virtual ~SAXSsim ();
     cv::Mat & Read(std::string imgName);
     cv::Mat & DFT(cv::Mat & realSpaceMatrix);
-    Histo<double> & Scatter(cv::Mat & dualSpaceMatrix);
+    histo::Histo<double> & Scatter(cv::Mat & dualSpaceMatrix);
     void Show();
 private:
     std::string inputName_;

@@ -33,6 +33,7 @@
 !/build/output_files
 !/build/output_files/*
 *.swp
+*.swo
 Session.vim
 .eclimrc
-C\:*
+/C\:*

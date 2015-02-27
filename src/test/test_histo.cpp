@@ -12,15 +12,10 @@ struct HistoDouble : public ::testing::Test{
 vector<double> HistoDouble::data{1.0,3.0,5.0};
 Histo<double> HistoDouble::h(data, breaks_method::Scott);
 
-TEST_F(HistoDouble, RangeMemberIsCorrect) {
+TEST_F(HistoDouble, MembersAreCorrect) {
     EXPECT_FLOAT_EQ(1.0, h.range.first);
     EXPECT_FLOAT_EQ(5.0, h.range.second);
-}
-TEST_F(HistoDouble, Breaks_AreCalculated_Automatically){
     EXPECT_EQ(2, h.bins);
-    // EXPECT_FLOAT_EQ(2.3575135991909719, h.bin_width);
-}
-TEST_F(HistoDouble, HistMemberIsCorrect) {
     EXPECT_EQ(2, (int)h.counts.size());
     EXPECT_EQ(2, h.counts[0]);
     EXPECT_EQ(1, h.counts[1]);
@@ -28,8 +23,8 @@ TEST_F(HistoDouble, HistMemberIsCorrect) {
 TEST_F(HistoDouble, IndexFromValueWorks) {
     ASSERT_THROW( h.IndexFromValue(1.0 - numeric_limits<double>::epsilon()), histo_error);
     EXPECT_EQ(0, h.IndexFromValue(1.0));
-    EXPECT_EQ(1, h.IndexFromValue(h.breaks[1])) << h.breaks[1];
     EXPECT_EQ(0, h.IndexFromValue(h.breaks[1] - numeric_limits<double>::epsilon())) << h.breaks[1];
+    EXPECT_EQ(1, h.IndexFromValue(h.breaks[1])) << h.breaks[1];
     EXPECT_EQ(1, h.IndexFromValue(5.4));
     EXPECT_EQ(1, h.IndexFromValue(h.breaks[2]));
     EXPECT_EQ(1, h.IndexFromValue(h.breaks[2] + numeric_limits<double>::epsilon()) );

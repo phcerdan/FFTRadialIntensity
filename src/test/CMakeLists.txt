@@ -1,4 +1,5 @@
 SET( OpenCV_LIBS ${OpenCV_LIBS} PARENT_SCOPE )
+SET( histo-header_LIBRARIES ${histo-header_LIBRARY} PARENT_SCOPE)
 
 set(GMOCK_HOME "$ENV{GMOCK_HOME}" CACHE PATH "Set this to gmock parent folder")
 #FIND GMOCK
@@ -43,17 +44,12 @@ find_library(GMOCK_LIBRARY_MAIN
                   ${GMOCK_HOME})
               
 include_directories("../src")
+find_package(Threads)
 file(COPY "./fixtures" DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
 add_executable(test_SAXSsim.exe test_SAXSsim.cpp)
 target_link_libraries(test_SAXSsim.exe SAXSsim)
-target_link_libraries(test_SAXSsim.exe pthread)
-# target_link_libraries(gmock-test pthread gmock_main gtest_main)
 target_link_libraries(test_SAXSsim.exe ${GMOCK_LIBRARY_MAIN} ${GTEST_LIBRARY_MAIN})
+target_link_libraries(test_SAXSsim.exe ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(test_SAXSsim.exe ${OpenCV_LIBS} )
 
-add_executable(test_histo.exe test_histo.cpp)
-# target_link_libraries(test_histo.exe histo)
-target_link_libraries(test_histo.exe pthread)
-# target_link_libraries(gmock-test pthread gmock_main gtest_main)
-target_link_libraries(test_histo.exe ${GMOCK_LIBRARY_MAIN} ${GTEST_LIBRARY_MAIN})
-target_link_libraries(test_histo.exe ${OpenCV_LIBS} )
+# set_source_files_properties (test_histo.cpp PROPERTIES COMPILE_FLAGS "-Wno-sign-compare")

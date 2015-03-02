@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "opencv2/core/core.hpp"
 #include <string>
-#include "histo.h"
+#include "histo-header.h"
 class SAXSsim
 {
 public:

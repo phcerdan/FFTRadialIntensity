@@ -14,13 +14,28 @@ SET(ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
 find_package(OpenCV)
 include_directories( ${OpenCV_INCLUDE_DIRS})
-message(status "** IncludeDirs: ${OpenCV_INCLUDE_DIRS}")
+message(status "** IncludeOpenCVDirs: ${OpenCV_INCLUDE_DIRS}")
 # message(status "** Libraries: ${OpenCV_LIBS}")
 find_package(Boost COMPONENTS
         system filesystem
         program_options
         REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
+set(HISTO_HEADER_HOME "$ENV{HISTO_HEADER_HOME}" CACHE PATH "Set this to histo-header build folder")
+find_path(histo-header_INCLUDE_DIR
+         histo-header.h
+         HINTS ${HISTO_HEADER_HOME}/include
+         DOC "histo-header include dir")
+include_directories(${histo-header_INCLUDE_DIR} )
+message(status "** Include Histo-Header Dirs: ${histo-header_INCLUDE_DIR}")
+# find_library(histo-header_LIBRARY
+#             NAMES histo-header
+#                   libghisto-header
+#                   libhisto-header.a
+#                   libhisto-header.so
+#             HINTS ${HISTO_HEADER_HOME}/lib)
+
 add_subdirectory(src)
 
 # TEST

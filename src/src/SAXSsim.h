@@ -19,17 +19,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "opencv2/core/core.hpp"
 #include <string>
-#include "histo-header.h"
+#include "histo-header-boost.h"
+namespace SAXSsimUtils {
+template<typename T = double>
+T modulo (const T &a, const T& b){
+    return sqrt(a*a + b*b);
+};
+}
 class SAXSsim
 {
 public:
+    using index_pair        = std::array<unsigned int, 2>;
+    using index_pair_vector = std::vector<index_pair>;
+    using intensities_vector =  std::vector<std::vector<double> > ;
+
     SAXSsim() = default;
     SAXSsim(std::string imgName);
     virtual ~SAXSsim ();
     cv::Mat & Read(std::string imgName);
     cv::Mat & DFT(cv::Mat & realSpaceMatrix);
-    histo::Histo<double> & Scatter(cv::Mat & dualSpaceMatrix);
+    histo::HistoB<double>  Scatter(cv::Mat & dualSpaceMatrix);
+    void PixelDistances(cv::Mat &dualSpaceMatrix);
+    index_pair_vector SimetricIndexPairsFromIndexPair(const index_pair &);
+    intensities_vector & IntensityFromDistanceVector(cv::Mat &);
     void Show();
+    std::vector<index_pair_vector> distances_indexes;
+    intensities_vector intensities_at_distance;
+    std::pair<unsigned int,unsigned int> mid_size;
+    std::pair<unsigned int,unsigned int> dft_size;
+    std::pair<bool, bool> even_flag;
 private:
     std::string inputName_;
     cv::Mat I_;

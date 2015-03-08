@@ -11,7 +11,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 SET(ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-
+include_directories(../include)
 find_package(OpenCV)
 include_directories( ${OpenCV_INCLUDE_DIRS})
 message(status "** IncludeOpenCVDirs: ${OpenCV_INCLUDE_DIRS}")

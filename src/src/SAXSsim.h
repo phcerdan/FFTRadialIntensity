@@ -25,12 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <utility>
 #include <algorithm>
 #include <cmath>
-namespace SAXSsimUtils {
-template<typename T = double>
-T modulo (const T &a, const T& b){
-    return sqrt(a*a + b*b);
-};
-}
+#include "PixelCenterDistances.h"
+
 class SAXSsim
 {
 public:
@@ -51,16 +47,22 @@ public:
     intensities_vector & IntensityFromDistanceVector(cv::Mat &);
     std::vector<double>&  MeanIntensities();
 
-    std::vector<index_pair_vector> distances_indexes;
+    // std::vector<index_pair_vector> distances_indexes;
+    PixelCenterDistances distances_indexes;
     intensities_vector intensities_at_distance;
     std::vector<double> intensities_mean;
 
     std::pair<unsigned int,unsigned int> mid_size;
     std::pair<unsigned int,unsigned int> dft_size;
     std::pair<bool, bool> even_flag;
-private:
-    const std::string inputName_;
+
     cv::Mat I_;
     cv::Mat dftMat_;
+private:
+    const std::string inputName_;
+    template<typename T = double>
+    inline T Modulo (const T &a, const T& b){
+        return sqrt(a*a + b*b);
+    };
 };
 #endif

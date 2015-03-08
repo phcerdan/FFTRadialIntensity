@@ -1,9 +1,13 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <exception>
 using namespace std;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
+struct po_help_exception: public std::runtime_error {
+    po_help_exception(const std::string & s) : std::runtime_error(s){};
+};
 
 po::variables_map program_options(const int &argc, char** const & argv)
 {
@@ -13,8 +17,14 @@ po::variables_map program_options(const int &argc, char** const & argv)
     generic.add_options()
         ("version,v", "print version string")
         ("help,h", "produce help message")
-        ("input_file,i", po::value<string>()->required(),
+        ("input_img,i", po::value<string>()->required(),
               "input image.")
+        ("output,o", po::value<string>()->default_value(""),
+              "output result to file.")
+        ("load_dist,l", po::value<string>()->default_value(""),
+              "load distances_indexes file.")
+        ("save_dist,s", po::value<string>()->default_value(""),
+              "save distances_indexes to file.")
         ;
 
     po::options_description cmdline_options;
@@ -26,12 +36,30 @@ po::variables_map program_options(const int &argc, char** const & argv)
     po::variables_map vm;
     store(po::command_line_parser(argc, argv).
           options(cmdline_options).run(), vm);
-    notify(vm);
-    if (vm.count("help")) {
+    if (vm.count("help") || !vm.count("input_img")) {
         cout << visible << "\n";
-        return 0;
+        throw po_help_exception("help exit");
     }
 
+    notify(vm);
+
+    if (vm["output"].as<string>()!="") {
+        cout << "Output to : " + vm["output"].as<string>()<< "\n";
+    } else {
+        cout << "Output to current directory" << "\n";
+    }
+
+    if (vm["load_dist"].as<string>()!="") {
+        cout << "PixelCenterDistances will be loaded from: " + vm["load_dist"].as<string>() << "\n";
+    } else {
+        cout << "No PixelCenterDistances will be loaded" << "\n";
+    }
+
+    if (vm["save_dist"].as<string>()!="") {
+        cout << "PixelCenterDistances will be saved to: " + vm["save_dist"].as<string>() << "\n";
+    } else {
+        cout << "PixelCenterDistances information will be saved to default directory" << "\n";
+    }
     // string config_file = vm["config"].as<string>();
     // ifstream ifs(config_file.c_str());
     // if (!ifs)

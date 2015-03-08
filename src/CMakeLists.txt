@@ -22,26 +22,26 @@ find_package(Boost COMPONENTS
         REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
-set(HISTO_HEADER_HOME "$ENV{HISTO_HEADER_HOME}" CACHE PATH "Set this to histo-header build folder")
-find_path(histo-header_INCLUDE_DIR
-         histo-header.h
-         histo-header-boost.h
-         HINTS ${HISTO_HEADER_HOME}/include
-         DOC "histo-header include dir")
-include_directories(${histo-header_INCLUDE_DIR} )
-message(status "** Include Histo-Header Dirs: ${histo-header_INCLUDE_DIR}")
-find_library(histo-header_LIBRARY
-            NAMES histo-header
-                  libhisto-header
-                  libhisto-header.so
-                  libhisto-header.a
-            HINTS ${HISTO_HEADER_HOME}/lib)
-find_library(histo-header-boost_LIBRARY
-            NAMES histo-header-boost
-                  libhisto-header-boost
-                  libhisto-header-boost.so
-                  libhisto-header-boost.a
-            HINTS ${HISTO_HEADER_HOME}/lib)
+# set(HISTO_HEADER_HOME "$ENV{HISTO_HEADER_HOME}" CACHE PATH "Set this to histo-header build folder")
+# find_path(histo-header_INCLUDE_DIR
+#          histo-header.h
+#          histo-header-boost.h
+#          HINTS ${HISTO_HEADER_HOME}/include
+#          DOC "histo-header include dir")
+# include_directories(${histo-header_INCLUDE_DIR} )
+# message(status "** Include Histo-Header Dirs: ${histo-header_INCLUDE_DIR}")
+# find_library(histo-header_LIBRARY
+#             NAMES histo-header
+#                   libhisto-header
+#                   libhisto-header.so
+#                   libhisto-header.a
+#             HINTS ${HISTO_HEADER_HOME}/lib)
+# find_library(histo-header-boost_LIBRARY
+#             NAMES histo-header-boost
+#                   libhisto-header-boost
+#                   libhisto-header-boost.so
+#                   libhisto-header-boost.a
+#             HINTS ${HISTO_HEADER_HOME}/lib)
 
 add_subdirectory(src)
 

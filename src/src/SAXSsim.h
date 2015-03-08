@@ -18,8 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SAXSsim_H_
 
 #include "opencv2/core/core.hpp"
+#include <boost/filesystem.hpp>
 #include <string>
-#include "histo-header-boost.h"
+#include <vector>
+#include <array>
+#include <utility>
+#include <algorithm>
+#include <cmath>
 namespace SAXSsimUtils {
 template<typename T = double>
 T modulo (const T &a, const T& b){
@@ -34,22 +39,27 @@ public:
     using intensities_vector =  std::vector<std::vector<double> > ;
 
     SAXSsim() = default;
-    SAXSsim(std::string imgName);
+    SAXSsim(const std::string imgName, std::string outputPlotName = "");
     virtual ~SAXSsim ();
-    cv::Mat & Read(std::string imgName);
+    cv::Mat & Read(const std::string &imgName);
+    void Save(const std::string & fname, const std::string & relativeOutputFolder = "./");
     cv::Mat & DFT(cv::Mat & realSpaceMatrix);
-    histo::HistoB<double>  Scatter(cv::Mat & dualSpaceMatrix);
-    void PixelDistances(cv::Mat &dualSpaceMatrix);
+    void Show();
+
+    void PixelDistances(const cv::Mat &dualSpaceMatrix);
     index_pair_vector SimetricIndexPairsFromIndexPair(const index_pair &);
     intensities_vector & IntensityFromDistanceVector(cv::Mat &);
-    void Show();
+    std::vector<double>&  MeanIntensities();
+
     std::vector<index_pair_vector> distances_indexes;
     intensities_vector intensities_at_distance;
+    std::vector<double> intensities_mean;
+
     std::pair<unsigned int,unsigned int> mid_size;
     std::pair<unsigned int,unsigned int> dft_size;
     std::pair<bool, bool> even_flag;
 private:
-    std::string inputName_;
+    const std::string inputName_;
     cv::Mat I_;
     cv::Mat dftMat_;
 };

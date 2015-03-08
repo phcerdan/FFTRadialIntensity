@@ -15,9 +15,9 @@ struct SAXSsimTest : public ::testing::Test{
 };
 string SAXSsimTest::imgTiny{"./fixtures/imgTiny.tiff"};
 shared_ptr<SAXSsim> SAXSsimTest::sim;// = make_shared<SAXSsim>(imgTiny);
-static string img5x5{"./fixtures/5x5.tiff"};
-static string img4x4{"./fixtures/4x4.tiff"};
-static string img4x5{"./fixtures/4x5.tiff"};
+static const string img5x5{"./fixtures/5x5.tiff"};
+static const string img4x4{"./fixtures/4x4.tiff"};
+static const string img4x5{"./fixtures/4x5.tiff"};
 TEST_F(SAXSsimTest,ReadImages){
     sim->Read(imgTiny);
 }
@@ -26,19 +26,18 @@ TEST_F(SAXSsimTest,DFT){
     sim->DFT(I);
     // sim->Show();
 }
-TEST_F(SAXSsimTest, Scatter){
-    auto I = sim->Read(imgTiny);
-    auto D = sim->DFT(I);
-    auto histo = sim->Scatter(D);
-    histo.Save("histo_test");
-}
 TEST_F(SAXSsimTest, CalculateIntensities) {
 
     auto I = sim->Read(imgTiny);
     auto D = sim->DFT(I);
     sim->PixelDistances(D);
-    cout << "PixelDistancesFinished" <<endl;
-    // auto inten = sim->IntensityFromDistanceVector(D);
+    sim->IntensityFromDistanceVector(D);
+    auto iv = sim->MeanIntensities();
+    for( auto &i : iv){
+        cout << i << " ";
+    }
+    cout << endl;
+    sim->Show();
 }
 TEST(PixelDistances, img5x5){
     auto s = SAXSsim (img5x5);
@@ -54,10 +53,10 @@ TEST(PixelDistances, img5x5){
     EXPECT_FALSE(s.even_flag.second);
     unsigned int total_indexes{0};
     for (auto &v : s.distances_indexes){
-        cout << v.size() <<endl;
+        // cout << v.size() <<endl;
         total_indexes += v.size();
         for (auto &p : v){
-            cout << p[0] << " " << p[1] <<endl;
+            // cout << p[0] << " " << p[1] <<endl;
         }
     }
     EXPECT_EQ(25, total_indexes);
@@ -91,13 +90,20 @@ TEST(PixelDistances, img4x4){
     // EXPECT_EQ(d3, s.distances_indexes[3]);
     unsigned int total_indexes{0};
     for (auto &v : s.distances_indexes){
-        cout << v.size() <<endl;
+        // cout << v.size() <<endl;
         total_indexes += v.size();
         for (auto &p : v){
-            cout << p[0] << " " << p[1] <<endl;
+            // cout << p[0] << " " << p[1] <<endl;
         }
     }
     EXPECT_EQ(16, total_indexes);
+    s.IntensityFromDistanceVector(D);
+    unsigned int total_intensities{0};
+    for (auto &v : s.intensities_at_distance){
+        // cout << v.size() <<endl;
+        total_intensities += v.size();
+    }
+    EXPECT_EQ(total_indexes, total_intensities);
 }
 
 TEST(PixelDistances, img4x5){

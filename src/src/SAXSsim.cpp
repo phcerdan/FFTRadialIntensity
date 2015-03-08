@@ -3,34 +3,64 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
 using namespace cv;
 using namespace std;
 using namespace SAXSsimUtils;
-SAXSsim::SAXSsim(string inputName) :
+SAXSsim::SAXSsim(const string inputName, string outputName) :
     inputName_{inputName}
 {
     Read(inputName_);
     DFT(I_);
+    PixelDistances(dftMat_);
+    IntensityFromDistanceVector(dftMat_);
+    MeanIntensities();
+    if(outputName =="") outputName = "./resultPlot";
+    Save(outputName);
     // Show();
 }
 
 SAXSsim::~SAXSsim(){}
 
-Mat& SAXSsim::Read(string inputName){
+Mat& SAXSsim::Read(const string &inputName){
     I_ = imread(inputName.c_str(), IMREAD_GRAYSCALE);
     if(I_.empty()) throw
         runtime_error("Read failed for image: " + inputName + " .Empty matrix");
     return I_;
 }
 
+void SAXSsim::Save(const string & fname, const string & relativeOutputFolder /* = "./"  */){
+
+    boost::filesystem::path dir(relativeOutputFolder);
+    boost::filesystem::path path(dir/(fname +".plot"));
+    if (relativeOutputFolder != "./"){
+        boost::filesystem::create_directories(dir);
+    }
+    std::ofstream output_file (path.string()); // delete everything inside the file(default)
+
+    if (!output_file.is_open()) {
+        perror( ("Error creating IvsQ file in " + path.string() ).c_str());
+    }
+
+    for (unsigned long long i = 0; i!=this->distances_indexes.size() - 1; i++ ){
+        output_file << i + 1.0/2.0 << " " << this->intensities_mean[i] << std::endl;
+    }
+
+    if(output_file.bad()){
+        perror( ("Error saving IvsQ file in " + path.string() ).c_str());
+    }
+    output_file.close();
+}
+
 Mat& SAXSsim::DFT(Mat &I){
     // Create a new padded image with borders added to original image.
-    Mat padded;
-    int m = getOptimalDFTSize( I.rows );
-    int n = getOptimalDFTSize( I.cols );
-    copyMakeBorder(I, padded, 0, m - I.rows, 0, n - I.cols, BORDER_CONSTANT, Scalar::all(0));
+    // Mat padded;
+    // int m = getOptimalDFTSize( I.rows );
+    // int n = getOptimalDFTSize( I.cols );
+    // copyMakeBorder(I, padded, 0, m - I.rows, 0, n - I.cols, BORDER_CONSTANT, Scalar::all(0));
     // The result of dft is complex:
-    Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
+    // Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
+    Mat planes[] = {Mat_<float>(I), Mat::zeros(I.size(), CV_32F)};
     Mat complexI;
     merge(planes, 2, complexI);
     dft(complexI, complexI);
@@ -60,10 +90,9 @@ Mat& SAXSsim::DFT(Mat &I){
     q2.copyTo(q1);
     tmp.copyTo(q2);
     dftMat_ = magI.clone();
-    normalize(dftMat_, dftMat_, 0, 1, NORM_MINMAX, -1, Mat());
     return dftMat_;
 }
-void SAXSsim::PixelDistances(Mat &dftMat){
+void SAXSsim::PixelDistances(const Mat &dftMat){
     mid_size  = make_pair (dftMat.cols/2, dftMat.rows/2);
     dft_size  = make_pair (dftMat.cols, dftMat.rows);
     even_flag = make_pair (dftMat.cols % 2 == 0, dftMat.rows % 2 == 0);
@@ -115,7 +144,7 @@ void SAXSsim::PixelDistances(Mat &dftMat){
             else
                 d_assigned          = d_far;
 
-            std::cout<<"center_distance_prox " << center_distance_prox<<" center_distance_far"<< center_distance_far<< " d_assigned: " << d_assigned << " " << xi << " " << yi << std::endl;
+            // std::cout<<"center_distance_prox " << center_distance_prox<<" center_distance_far"<< center_distance_far<< " d_assigned: " << d_assigned << " " << xi << " " << yi << std::endl;
             index_pair_vector v = SimetricIndexPairsFromIndexPair(index_pair{xi,yi});
             auto it             = distances_indexes[d_assigned].end();
             distances_indexes[d_assigned].insert(it, v.begin(), v.end());
@@ -125,7 +154,7 @@ void SAXSsim::PixelDistances(Mat &dftMat){
                 index_pair_vector v = SimetricIndexPairsFromIndexPair(index_pair{xi,yi});
                 auto it             = distances_indexes[d_extra].end();
                 distances_indexes[d_extra].insert(it, v.begin(), v.end());
-            std::cout<<" d_extra: " << d_extra << " " << xi << " " << yi << std::endl;
+            // std::cout<<" d_extra: " << d_extra << " " << xi << " " << yi << std::endl;
             }
         }
     }
@@ -177,29 +206,42 @@ SAXSsim::index_pair_vector SAXSsim::SimetricIndexPairsFromIndexPair(const SAXSsi
     return index_pair_vector{p1, p2, p3, p4};
 }
 
-histo::HistoB<double>  SAXSsim::Scatter(Mat& dftMat){
-    std::vector<double> d{1,1,1,1,40,450, 43,20, 20, 21, 300};
-    std::vector<double> b{-100, 1, 100,200, 300,400, 500};
-    histo::HistoB<double> h(d, b);
-    return h;
+std::vector<double> & SAXSsim::MeanIntensities(){
+    unsigned int d_max = distances_indexes.size() - 1;
+    unsigned int d{0};
+    double mean{0};
+    intensities_mean.resize(distances_indexes.size());
+    for( auto & dv : intensities_at_distance){
+        if (dv.size() != 0) {
+            mean = 0.0;
+            for (auto & iv : dv ){
+               mean+=iv;
+            }
+            mean = mean / static_cast<double> (dv.size());
+            intensities_mean[d] = mean;
+        }
+        d++;
+    }
+    return intensities_mean;
 }
 
 SAXSsim::intensities_vector & SAXSsim::IntensityFromDistanceVector( cv::Mat & dftMat){
-    unsigned int d_max = this->distances_indexes.size();
-    intensities_at_distance.resize(d_max);
-    double *p;
+    unsigned int d_max = this->distances_indexes.size() - 1;
+    intensities_at_distance.resize(d_max + 1);
+    float *p;
     double I{0}, d_aprox{0};
     unsigned int  d{0} ;
 
     auto it_begin = distances_indexes[0].begin(),
          it_end = distances_indexes[0].end(),
          it_found = it_end;
+    // unsigned int debug_counts{0};
     for(unsigned int y = 0; y!=dftMat.rows; y++){
-        p = dftMat.ptr<double>(y);
+        p = dftMat.ptr<float>(y);
         for(unsigned int x = 0; x!=dftMat.cols; x++){
 
             I = p[x];
-            d_aprox = SAXSsimUtils::modulo<double>(x - mid_size.first, y - mid_size.second);
+            d_aprox = SAXSsimUtils::modulo<double>(static_cast<double>(x) - mid_size.first, static_cast<double>(y) - mid_size.second);
             // Search index in d= [d_aprox -1, d_aprox, d_aprox +1 ]
             d = static_cast<unsigned int>(d_aprox);
             it_begin = distances_indexes[d].begin();
@@ -213,6 +255,7 @@ SAXSsim::intensities_vector & SAXSsim::IntensityFromDistanceVector( cv::Mat & df
                 it_end = distances_indexes[d].end();
                 it_found = find(it_begin, it_end, index_pair{x,y});
                 if (it_found!=it_end) intensities_at_distance[d].push_back(I);
+                d++; //Restore old d for next step
             }
             if (d!= d_max){
                 d++;
@@ -221,12 +264,16 @@ SAXSsim::intensities_vector & SAXSsim::IntensityFromDistanceVector( cv::Mat & df
                 it_found = find(it_begin, it_end, index_pair{x,y});
                 if (it_found!=it_end) intensities_at_distance[d].push_back(I);
             }
+            // debug_counts++;
         }
     }
+    // cout << "debug_counts: " << debug_counts << endl;
     return intensities_at_distance;
 }
+
 void SAXSsim::Show(){
     imshow("Input Image"  , I_   );
+    normalize(dftMat_, dftMat_, 0, 1, NORM_MINMAX, -1, Mat());
     imshow("DFT:Magnitude", dftMat_);
     waitKey();
 }

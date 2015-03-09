@@ -4,18 +4,64 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <cereal/archives/portable_binary.hpp>
+using cereal_input_type = cereal::PortableBinaryInputArchive;
+using cereal_output_type = cereal::PortableBinaryOutputArchive;
+// #include <cereal/archives/json.hpp>
+// using cereal_input_type = cereal::JSONInputArchive;
+// using cereal_output_type = cereal::JSONOutputArchive;
+
 using namespace cv;
 using namespace std;
-SAXSsim::SAXSsim(const string inputName, string outputName) :
+SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, string load_dist) :
     inputName_{inputName}
 {
+
     Read(inputName_);
     DFT(I_);
-    PixelDistances(dftMat_);
+    if(load_dist ==""){
+
+        cout << "Computing new set of distances_index..." << endl;
+        PixelDistances(dftMat_);
+
+    } else {
+
+        PixelCenterDistances loaded_data;
+        {
+            ifstream sinp(load_dist);
+            cereal_input_type iarchive(sinp);
+            iarchive(loaded_data);
+        }
+
+        if(loaded_data.Nx == dft_size.first && loaded_data.Ny == dft_size.second){
+
+            distances_indexes = loaded_data;
+            InitializeSizeMembers(dftMat_);
+
+        } else
+            throw std::runtime_error("Size of input image:[ " + std::to_string(dft_size.first) + ", "
+                    + std::to_string(dft_size.second) +  " ] is different from loaded data: [ "
+                    + std::to_string(loaded_data.Nx) + ", " + std::to_string(loaded_data.Ny) + " ]\n"
+                    "Change the data to load, resize the image, or generate new distances_indexes"
+                    "running the executable without -l or --load_dist option. "
+             );
+    }
+
+    if(save_dist == "")
+        save_dist = "./serialization/x"+ std::to_string(dft_size.first) + "_y" + std::to_string(dft_size.second);
+
+    {
+        boost::filesystem::path opath{save_dist};
+        boost::filesystem::create_directories(opath.parent_path());
+        ofstream sout(save_dist);
+        cereal_output_type oarchive(sout);
+        oarchive(distances_indexes);
+    }
+
+    cout << "Computing Intensity..." << endl;
     IntensityFromDistanceVector();
     MeanIntensities();
-    if(outputName =="") outputName = "./resultPlot";
-    Save(outputName);
+    SavePlot(outputName);
     // Show();
 }
 
@@ -28,7 +74,7 @@ Mat& SAXSsim::Read(const string &inputName){
     return I_;
 }
 
-void SAXSsim::Save(const string & fname, const string & relativeOutputFolder /* = "./"  */){
+void SAXSsim::SavePlot(const string & fname, const string & relativeOutputFolder /* = "./"  */){
 
     boost::filesystem::path dir(relativeOutputFolder);
     boost::filesystem::path path(dir/(fname +".plot"));
@@ -89,6 +135,7 @@ Mat& SAXSsim::DFT(Mat &I){
     q2.copyTo(q1);
     tmp.copyTo(q2);
     dftMat_ = magI.clone();
+    dft_size  = make_pair (dftMat_.cols, dftMat_.rows);
     return dftMat_;
 }
 

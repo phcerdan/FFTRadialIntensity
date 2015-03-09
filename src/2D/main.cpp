@@ -10,7 +10,7 @@ int main(int argc, char* argv[]){
         string output = option_map["output"].as<string>();
         string save_dist = option_map["save_dist"].as<string>();
         string load_dist = option_map["load_dist"].as<string>();
-        auto sim = SAXSsim(input, output);
+        auto sim = SAXSsim(input, output, save_dist, load_dist);
 
     } catch(po_help_exception & e){
         return 1;

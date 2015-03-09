@@ -35,10 +35,11 @@ public:
     using intensities_vector =  std::vector<std::vector<double> > ;
 
     SAXSsim() = default;
-    SAXSsim(const std::string imgName, std::string outputPlotName = "");
+    SAXSsim(const std::string imgName, std::string outputPlotName = "./resultPlot",
+            std::string save_dist = "", std::string load_dist = "");
     virtual ~SAXSsim ();
     cv::Mat & Read(const std::string &imgName);
-    void Save(const std::string & fname, const std::string & relativeOutputFolder = "./");
+    void SavePlot(const std::string & fname, const std::string & relativeOutputFolder = "./");
     cv::Mat & DFT(cv::Mat & realSpaceMatrix);
     void Show();
 

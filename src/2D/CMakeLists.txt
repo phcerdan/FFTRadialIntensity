@@ -10,3 +10,7 @@ target_link_libraries(SAXSsim.exe ${OpenCV_LIBS} )
 target_link_libraries(SAXSsim.exe SAXSsim)
 message(status "** Libraries: ${OpenCV_LIBS}")
 
+SET(ENABLE_GOOGLE_TEST ${ENABLE_GOOGLE_TEST} PARENT_SCOPE)
+IF(ENABLE_GOOGLE_TEST)
+    add_subdirectory(test)
+ENDIF()

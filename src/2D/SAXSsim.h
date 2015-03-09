@@ -43,23 +43,32 @@ public:
     void Show();
 
     void PixelDistances(const cv::Mat &dualSpaceMatrix);
-    index_pair_vector SimetricIndexPairsFromIndexPair(const index_pair &);
-    intensities_vector & IntensityFromDistanceVector(cv::Mat &);
-    std::vector<double>&  MeanIntensities();
-
-    // std::vector<index_pair_vector> distances_indexes;
+    void InitializeDistancesIndexes();
     PixelCenterDistances distances_indexes;
+
+    intensities_vector & IntensityFromDistanceVector();
     intensities_vector intensities_at_distance;
+    std::vector<double>&  MeanIntensities();
     std::vector<double> intensities_mean;
 
+    void InitializeSizeMembers(const cv::Mat & dftMat);
     std::pair<unsigned int,unsigned int> mid_size;
     std::pair<unsigned int,unsigned int> dft_size;
     std::pair<bool, bool> even_flag;
+    std::pair<double,double> origin;
+    unsigned int d_assigned_max{0};
+    unsigned int xi_begin{0}, xi_end{0}, yi_begin{0}, yi_end{0};
 
     cv::Mat I_;
     cv::Mat dftMat_;
 private:
     const std::string inputName_;
+    index_pair_vector SimetricIndexPairsFromIndexPair(const index_pair &);
+    void SimetricIndexes();
+    void ExtraIndexOddX();
+    void ExtraIndexOddY();
+    void ExtraIndexOddBoth();
+
     template<typename T = double>
     inline T Modulo (const T &a, const T& b){
         return sqrt(a*a + b*b);

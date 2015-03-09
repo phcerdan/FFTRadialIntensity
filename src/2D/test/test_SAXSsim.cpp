@@ -27,7 +27,7 @@ TEST_F(SAXSsimTest, CalculateIntensities) {
     auto I = sim->Read(img);
     auto D = sim->DFT(I);
     sim->PixelDistances(D);
-    sim->IntensityFromDistanceVector(D);
+    sim->IntensityFromDistanceVector();
     auto iv = sim->MeanIntensities();
     for( auto &i : iv){
         cout << i << " ";

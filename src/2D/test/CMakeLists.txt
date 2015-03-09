@@ -41,11 +41,12 @@ find_library(GMOCK_LIBRARY_MAIN
                   libgmock.a
             HINTS ${GMOCK_HOME}/mybuild
                   ${GMOCK_HOME})
-              
-include_directories("../src")
+
+include_directories("..")
 find_package(Threads)
 file(COPY "./fixtures" DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
 add_executable(test_SAXSsim.exe test_SAXSsim.cpp)
+set_source_files_properties (test_SAXSsim.exe PROPERTIES COMPILE_FLAGS "-Wno-sign-compare")
 target_link_libraries(test_SAXSsim.exe SAXSsim)
 target_link_libraries(test_SAXSsim.exe ${GMOCK_LIBRARY_MAIN} ${GTEST_LIBRARY_MAIN})
 target_link_libraries(test_SAXSsim.exe ${CMAKE_THREAD_LIBS_INIT})

@@ -43,7 +43,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 #                   libhisto-header-boost.a
 #             HINTS ${HISTO_HEADER_HOME}/lib)
 
-add_subdirectory(src)
+add_subdirectory(2D)
 
 # TEST
 ### Google TEST AND MOCK
@@ -51,6 +51,6 @@ add_subdirectory(src)
 # export GMOCK_HOME=/path/to/gmock-1.7.0
 set(ENABLE_GOOGLE_TEST "ON" CACHE BOOL "Requires ENV variable GMOCK_HOME pointing to gmock parent folder")
 
-IF(ENABLE_GOOGLE_TEST)
-    add_subdirectory(test)
-ENDIF()
+# IF(ENABLE_GOOGLE_TEST)
+#     add_subdirectory(test)
+# ENDIF()

@@ -22,26 +22,6 @@ find_package(Boost COMPONENTS
         REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
-# set(HISTO_HEADER_HOME "$ENV{HISTO_HEADER_HOME}" CACHE PATH "Set this to histo-header build folder")
-# find_path(histo-header_INCLUDE_DIR
-#          histo-header.h
-#          histo-header-boost.h
-#          HINTS ${HISTO_HEADER_HOME}/include
-#          DOC "histo-header include dir")
-# include_directories(${histo-header_INCLUDE_DIR} )
-# message(status "** Include Histo-Header Dirs: ${histo-header_INCLUDE_DIR}")
-# find_library(histo-header_LIBRARY
-#             NAMES histo-header
-#                   libhisto-header
-#                   libhisto-header.so
-#                   libhisto-header.a
-#             HINTS ${HISTO_HEADER_HOME}/lib)
-# find_library(histo-header-boost_LIBRARY
-#             NAMES histo-header-boost
-#                   libhisto-header-boost
-#                   libhisto-header-boost.so
-#                   libhisto-header-boost.a
-#             HINTS ${HISTO_HEADER_HOME}/lib)
 
 add_subdirectory(2D)
 
@@ -51,6 +31,46 @@ add_subdirectory(2D)
 # export GMOCK_HOME=/path/to/gmock-1.7.0
 set(ENABLE_GOOGLE_TEST "ON" CACHE BOOL "Requires ENV variable GMOCK_HOME pointing to gmock parent folder")
 
-# IF(ENABLE_GOOGLE_TEST)
-#     add_subdirectory(test)
-# ENDIF()
+IF(ENABLE_GOOGLE_TEST)
+    set(GMOCK_HOME "$ENV{GMOCK_HOME}" CACHE PATH "Set this to gmock parent folder")
+    #FIND GMOCK
+    find_path(GTEST_INCLUDE_DIR
+             gtest/gtest.h
+             HINTS ${GMOCK_HOME}/gtest/include
+             PATH_SUFFIXES gtest
+             DOC "gtest include dir")
+    find_path(GMOCK_INCLUDE_DIR
+             gmock/gmock.h
+             HINTS ${GMOCK_HOME}/include
+             PATH_SUFFIXES gmock
+             DOC "gmock include dir")
+    include_directories(${GMOCK_INCLUDE_DIR} ${GTEST_INCLUDE_DIR})
+
+    find_library(GTEST_LIBRARY
+                NAMES gtest
+                      libgtest
+                      libgtest.a
+                HINTS ${GMOCK_HOME}/mybuild/gtest
+                      ${GMOCK_HOME}/gtest
+                      ${GMOCK_HOME}/gtest/mybuild)
+    find_library(GTEST_LIBRARY_MAIN
+                NAMES gtest_main
+                      libgtest_main
+                      libgtest.a
+                HINTS ${GMOCK_HOME}/mybuild/gtest
+                      ${GMOCK_HOME}/gtest
+                      ${GMOCK_HOME}/gtest/mybuild)
+
+    find_library(GMOCK_LIBRARY
+                NAMES gmock
+                      libgmock
+                      libgmock.a
+                HINTS ${GMOCK_HOME}/mybuild
+                      ${GMOCK_HOME})
+    find_library(GMOCK_LIBRARY_MAIN
+                NAMES gmock_main
+                      libgmock_main
+                      libgmock.a
+                HINTS ${GMOCK_HOME}/mybuild
+                      ${GMOCK_HOME})
+ENDIF(ENABLE_GOOGLE_TEST)

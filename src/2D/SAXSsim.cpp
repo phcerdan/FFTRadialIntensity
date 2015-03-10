@@ -88,7 +88,7 @@ void SAXSsim::SavePlot(const string & fname, const string & relativeOutputFolder
     }
 
     for (unsigned long long i = 0; i!=this->distances_indexes.ind.size() - 1; i++ ){
-        output_file << i + 1.0/2.0 << " " << this->intensities_mean[i] << std::endl;
+        output_file << i  << " " << this->intensities_mean[i] << std::endl;
     }
 
     if(output_file.bad()){

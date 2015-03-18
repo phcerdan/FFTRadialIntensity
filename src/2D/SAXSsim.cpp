@@ -326,12 +326,15 @@ SAXSsim::intensities_vector & SAXSsim::IntensityFromDistanceVector(){
          it_found = it_end;
     // unsigned int debug_counts{0};
     index_pair ipair{};
+    pair<double,double> d_correction = make_pair(mid_size.first + origin.first,
+            mid_size.second + origin.second);
     for(unsigned int y = 0; y!=distances_indexes.Ny; y++){
         p = dftMat_.ptr<float>(y);
         for(unsigned int x = 0; x!=distances_indexes.Nx; x++){
 
             I = p[x];
-            d_aprox = Modulo<double>(static_cast<double>(x) - mid_size.first, static_cast<double>(y) - mid_size.second);
+            // d_aprox = Modulo<double>(static_cast<double>(x) - mid_size.first, static_cast<double>(y) - mid_size.second);
+            d_aprox = Modulo<double>(static_cast<double>(x) - d_correction.first, static_cast<double>(y) - d_correction.second);
             // Search index in d= [d_aprox -1, d_aprox, d_aprox +1 ]
             d = static_cast<unsigned int>(d_aprox);
             it_begin = distances_indexes.ind[d].begin();

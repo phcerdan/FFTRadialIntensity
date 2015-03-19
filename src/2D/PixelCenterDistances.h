@@ -1,7 +1,7 @@
 #ifndef PIXEL_CENTER_DISTANCES_H_
 #define PIXEL_CENTER_DISTANCES_H_
-#include <cereal/types/vector.hpp>
-#include <cereal/types/array.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/array.hpp>
 struct PixelCenterDistances {
     PixelCenterDistances() = default;
     using index_pair        = std::array<unsigned int, 2>;
@@ -12,9 +12,9 @@ struct PixelCenterDistances {
     std::vector<index_pair_vector> ind;
 
     template<class Archive>
-    void serialize(Archive & archive)
+    void serialize(Archive & archive, const unsigned int)
     {
-        archive( Nx, Ny, ind );
+        archive & Nx & Ny & ind ;
     }
 };
 #endif

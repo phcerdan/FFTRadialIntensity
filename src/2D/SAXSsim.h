@@ -73,6 +73,6 @@ private:
     template<typename T = double>
     inline T Modulo (const T &a, const T& b){
         return sqrt(a*a + b*b);
-    };
+    }
 };
 #endif

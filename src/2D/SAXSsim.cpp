@@ -4,9 +4,13 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
-#include <cereal/archives/portable_binary.hpp>
-using cereal_input_type = cereal::PortableBinaryInputArchive;
-using cereal_output_type = cereal::PortableBinaryOutputArchive;
+// #include <cereal/archives/portable_binary.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+using serialize_input_type = boost::archive::text_iarchive;
+using serialize_output_type = boost::archive::text_oarchive;
+// using serialize_input_type = cereal::PortableBinaryInputArchive;
+// using serialize_output_type = cereal::PortableBinaryOutputArchive;
 // #include <cereal/archives/json.hpp>
 // using cereal_input_type = cereal::JSONInputArchive;
 // using cereal_output_type = cereal::JSONOutputArchive;
@@ -29,8 +33,8 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
         PixelCenterDistances loaded_data;
         {
             ifstream sinp(load_dist);
-            cereal_input_type iarchive(sinp);
-            iarchive(loaded_data);
+            serialize_input_type iarchive(sinp);
+            iarchive >> loaded_data ;
         }
 
         if(loaded_data.Nx == dft_size.first && loaded_data.Ny == dft_size.second){
@@ -54,8 +58,8 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
         boost::filesystem::path opath{save_dist};
         boost::filesystem::create_directories(opath.parent_path());
         ofstream sout(save_dist);
-        cereal_output_type oarchive(sout);
-        oarchive(distances_indexes);
+        serialize_output_type oarchive(sout);
+        oarchive << distances_indexes;
     }
 
     cout << "Computing Intensity..." << endl;

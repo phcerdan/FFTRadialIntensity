@@ -24,15 +24,16 @@ dfx = 1.0/(Nx*dx);
 dfy = 1.0/(Ny*dy);
 df = sqrt(dfx*dfx + dfy*dfy);
 
-dd = sqrt(dx *dx + dy*dy)
-Nd = sqrt(Nx *Nx + Ny*Ny)
-dfd = 1.0/(Nd*dd)
+# dd = sqrt(dx *dx + dy*dy)
+# Nd = sqrt(Nx *Nx + Ny*Ny)
+# dfd = 1.0/(Nd*dd)
 
-q = data[,"d"] * dfd;
+q = data[,"d"] * df;
 I = data[,"I"];
-pdf(file=paste(filename, ".pdf", sep=''))
+pdfName = paste(filename, ".pdf", sep='');
+pdf(file=pdfName)
 plot(q, I, log=c("x", "y"));
 title(fname)
 axis(1, q, outer=TRUE, xpd=TRUE)
 dev.off(); # To switch off plot.
-
+print(paste("Output pdf file generated:", pdfName));

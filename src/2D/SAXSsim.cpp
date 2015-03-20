@@ -65,6 +65,12 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
     cout << "Computing Intensity..." << endl;
     IntensityFromDistanceVector();
     MeanIntensities();
+    // Save results. Get the filename of input with no extension
+    boost::filesystem::path opath{inputName};
+    auto path_no_extension    = opath.stem();
+    auto input_no_extension = path_no_extension.generic_string();
+    if (outputName == "")
+        outputName = "./results/" + input_no_extension;
     SavePlot(outputName);
     // Show();
 }
@@ -78,25 +84,27 @@ Mat& SAXSsim::Read(const string &inputName){
     return I_;
 }
 
-void SAXSsim::SavePlot(const string & fname, const string & relativeOutputFolder /* = "./"  */){
+void SAXSsim::SavePlot(const string & fname){
 
-    boost::filesystem::path dir(relativeOutputFolder);
-    boost::filesystem::path path(dir/(fname +".plot"));
-    if (relativeOutputFolder != "./"){
-        boost::filesystem::create_directories(dir);
-    }
-    std::ofstream output_file (path.string()); // delete everything inside the file(default)
+    boost::filesystem::path opath{fname};
+    boost::filesystem::create_directories(opath.parent_path());
+    std::ofstream output_file (fname + ".plot"); // delete everything inside the file(default)
 
     if (!output_file.is_open()) {
-        perror( ("Error creating IvsQ file in " + path.string() ).c_str());
+        perror( ("Error creating IvsQ file in " + opath.string() ).c_str());
     }
+    boost::filesystem::path inpath{inputName_};
+    auto inFileName = inpath.filename().string();
+    output_file << "# input_file=" << inFileName << std::endl;
+    output_file << "# Nx=" << dft_size.first << std::endl;
+    output_file << "# Ny=" << dft_size.second << std::endl;
 
     for (unsigned long long i = 0; i!=this->distances_indexes.ind.size() - 1; i++ ){
         output_file << i  << " " << this->intensities_mean[i] << std::endl;
     }
 
     if(output_file.bad()){
-        perror( ("Error saving IvsQ file in " + path.string() ).c_str());
+        perror( ("Error saving IvsQ file in " + opath.string() ).c_str());
     }
     output_file.close();
 }

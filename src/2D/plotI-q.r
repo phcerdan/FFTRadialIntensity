@@ -1,19 +1,25 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 
 filename = commandArgs(trailingOnly=TRUE)[1];
-print(filename);
+print(paste("filename :",filename));
 data = read.table(filename, col.names=c("d", "I"), row.names=NULL);
 # print(data[,"d"]);
+header = scan(file(filename), what="character", nlines=3)
+# HEADER format:
+# #input_file=thefilename
+# #Nx=x
+# #Ny=y
+fname = unlist(strsplit(header[2], "="))[2];
+Nx = as.numeric(unlist(strsplit(header[4], "="))[2]);
+Ny = as.numeric(unlist(strsplit(header[6], "="))[2]);
+print(paste("Nx =", Nx," ", "Ny =", Ny))
 
 nm_per_pixel = commandArgs(trailingOnly=TRUE)[2];
-nm_per_pixel = 0.72
-print(nm_per_pixel)
+print(paste("nm_per_pixel =",nm_per_pixel));
 nm_per_pixel = as.numeric(nm_per_pixel);
 
 dx = nm_per_pixel;
 dy = nm_per_pixel;
-Nx = 6144
-Ny = 6144
 dfx = 1.0/(Nx*dx);
 dfy = 1.0/(Ny*dy);
 df = sqrt(dfx*dfx + dfy*dfy);
@@ -24,10 +30,9 @@ dfd = 1.0/(Nd*dd)
 
 q = data[,"d"] * dfd;
 I = data[,"I"];
-q = q - 0.499*dfd
 pdf(file=paste(filename, ".pdf", sep=''))
 plot(q, I, log=c("x", "y"));
-title("I-q")
+title(fname)
 axis(1, q, outer=TRUE, xpd=TRUE)
-
+dev.off(); # To switch off plot.
 

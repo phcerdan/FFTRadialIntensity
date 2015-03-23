@@ -179,7 +179,7 @@ void SAXSsim::InitializeSizeMembers(const cv::Mat & dftMat){
     double origin_y = even_flag.second ? 0.0 : 0.5;
     origin = make_pair(origin_x, origin_y);
 
-    double distance_max = Modulo<double>(mid_size.first - origin.first, mid_size.second - origin.second);
+    double distance_max = Modulo<double>(mid_size.first + origin.first, mid_size.second + origin.second);
     d_assigned_max = static_cast<unsigned int>(distance_max) + 2;
 
     xi_begin = even_flag.first ? 0 : 1;

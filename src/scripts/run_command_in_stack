@@ -1,0 +1,11 @@
+#!/bin/bash
+s1='K_carrageenan_4_1881_pixel_reconstruction_1x_binned_Slice_'
+echo $s1
+for ((i=1;i<2;i++))
+do
+	s2=$s1$i
+	echo $s2
+    s3='/home/phc/DATA/stack_to_images/'$s2'.tif'
+	echo $s3
+    /bin/bash -c './SAXSsim.exe -i '"$s3"' -j 12'
+done

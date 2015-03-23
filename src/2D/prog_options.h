@@ -51,7 +51,7 @@ po::variables_map program_options(const int &argc, char** const & argv)
     if (vm["output"].as<string>()!="") {
         cout << "Output to : " + vm["output"].as<string>()<< "\n";
     } else {
-        cout << "Output to current directory" << "\n";
+        cout << "Output to default directory" << "\n";
     }
 
     if (vm["load_dist"].as<string>()!="") {

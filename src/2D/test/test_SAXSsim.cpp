@@ -134,3 +134,60 @@ TEST_F(img4x5_F, PixelDistances){
     }
     EXPECT_EQ(20, total_indexes);
 }
+#ifdef ENABLE_PARALLEL
+struct parallel_img5x5_F : public ::testing::Test{
+    static const string img;
+    static shared_ptr<SAXSsim> sim;
+
+    static void SetUpTestCase(){
+        sim = make_shared<SAXSsim>(img, "", "", "", 4) ;
+    };
+};
+const string parallel_img5x5_F::img{"./fixtures/5x5.tiff"};
+shared_ptr<SAXSsim> parallel_img5x5_F::sim;
+
+TEST_F(parallel_img5x5_F, IntensityComparisson_single){
+    shared_ptr<SAXSsim> sim_single = make_shared<SAXSsim>(img);
+    auto i_p                 =  sim->intensities_at_distance;
+    auto i_s                 =  sim_single->intensities_at_distance;
+    double sump = 0;
+    double sums = 0;
+    for(auto id : i_p){
+        for(auto iv : id){
+            sump += iv;
+        }
+    }
+    for(auto id : i_s){
+        for(auto iv : id){
+            sums += iv;
+        }
+    }
+    EXPECT_EQ(sump, sums);
+}
+
+TEST_F(parallel_img5x5_F, IntensityComparissonDifferent_j){
+    shared_ptr<SAXSsim> sim_maxj = make_shared<SAXSsim>(img, "./results/img5x5jmax",
+            "","", omp_get_num_procs());
+    auto i_p                 =  sim->MeanIntensities();
+    auto i_s                 =  sim_maxj->MeanIntensities();
+    EXPECT_EQ(i_p, i_s);
+}
+
+struct parallel_imgTiny_F : public ::testing::Test{
+    static const string img;
+    static shared_ptr<SAXSsim> sim;
+
+    static void SetUpTestCase(){
+        sim = make_shared<SAXSsim>(img, "./results/imgTinyParallelj4","","", 4) ;
+    };
+};
+const string parallel_imgTiny_F::img{"./fixtures/imgTiny.tiff"};
+shared_ptr<SAXSsim> parallel_imgTiny_F::sim;
+
+TEST_F(parallel_imgTiny_F, IntensityComparisson_single){
+    shared_ptr<SAXSsim> sim_single = make_shared<SAXSsim>(img);
+    auto i_p                 =  sim->MeanIntensities();
+    auto i_s                 =  sim_single->MeanIntensities();
+    EXPECT_EQ(i_p, i_s);
+}
+#endif // ENABLE_PARALLEL

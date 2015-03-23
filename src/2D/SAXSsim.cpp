@@ -14,22 +14,27 @@ using serialize_output_type = boost::archive::text_oarchive;
 // #include <cereal/archives/json.hpp>
 // using cereal_input_type = cereal::JSONInputArchive;
 // using cereal_output_type = cereal::JSONOutputArchive;
-
 using namespace cv;
 using namespace std;
-SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, string load_dist) :
-    inputName_{inputName}
+SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, string load_dist, int num_threads) :
+    inputName_{inputName}, num_threads_{num_threads}
 {
+    // Measure execution time
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
 
     Read(inputName_);
     DFT(I_);
-    if(load_dist ==""){
-
+    string serialization_string = "./serialization/x"+ std::to_string(dft_size.first) + "_y" + std::to_string(dft_size.second);
+    if(load_dist =="" && ! boost::filesystem::exists(serialization_string) ){
         cout << "Computing new set of distances_index..." << endl;
         PixelDistances(dftMat_);
 
     } else {
-
+        if (load_dist == ""){
+            cout << "Loading suitable serialization archive with distances index"<<endl;
+            load_dist = serialization_string;
+        }
         PixelCenterDistances loaded_data;
         {
             ifstream sinp(load_dist);
@@ -52,8 +57,7 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
     }
 
     if(save_dist == "")
-        save_dist = "./serialization/x"+ std::to_string(dft_size.first) + "_y" + std::to_string(dft_size.second);
-
+        save_dist = serialization_string;
     {
         boost::filesystem::path opath{save_dist};
         boost::filesystem::create_directories(opath.parent_path());
@@ -63,7 +67,18 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
     }
 
     cout << "Computing Intensity..." << endl;
+#ifdef ENABLE_PARALLEL
+    // int max_threads = omp_get_max_threads();
+    int max_threads = omp_get_num_procs();
+    if (num_threads_ > max_threads) num_threads_ = max_threads;
+    omp_set_num_threads(num_threads_);
+    cout << "Number of Threads:" << num_threads_ <<" MaxThreads: " << max_threads << endl;
+
+    if(num_threads_>1) ParallelIntensityFromDistanceVector();
+    else IntensityFromDistanceVector();
+#else
     IntensityFromDistanceVector();
+#endif
     MeanIntensities();
     // Save results. Get the filename of input with no extension
     boost::filesystem::path opath{inputName};
@@ -73,8 +88,12 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
         outputName = "./results/" + input_no_extension;
     SavePlot(outputName);
     // Show();
-}
 
+    // Display execution time
+    end = chrono::system_clock::now();
+    chrono::duration<double, ratio<60>> elapsed_time = end-start;
+    cout << "Elapsed time: " << elapsed_time.count() << " min" << endl;
+}
 SAXSsim::~SAXSsim(){}
 
 Mat& SAXSsim::Read(const string &inputName){
@@ -386,3 +405,79 @@ void SAXSsim::Show(){
     destroyWindow("Input Image");
     destroyWindow("DFT:Magnitude");
 }
+#ifdef ENABLE_PARALLEL
+SAXSsim::intensities_vector & SAXSsim::ParallelIntensityFromDistanceVector(){
+    cout << "Calculating intensities in parallel" << endl;
+    intensities_at_distance.resize(distances_indexes.ind.size());
+    unsigned int d_max = intensities_at_distance.size() - 1;
+
+    // create intensities_at_distance for each thread.
+    vector<intensities_vector> p_intensities;
+    int Nthreads  = num_threads_;
+    p_intensities.resize(Nthreads);
+    for (int N    = 0;  N < Nthreads; N++ ){
+        p_intensities[N].assign(intensities_at_distance.begin(), intensities_at_distance.end());
+    }
+    // unsigned int debug_counts{0};
+    pair<double,double> d_correction = make_pair(mid_size.first + origin.first,
+            mid_size.second + origin.second);
+
+    for( int x = 0; x < (int)distances_indexes.Nx; x++){
+        #pragma omp parallel for
+        for( int y = 0; y < (int)distances_indexes.Ny; y++){
+            int th = omp_get_thread_num();
+            // stringstream buf;
+            // buf << "Thread:" << th << ": " <<  x << ", " << y << endl;
+            float *p;
+            double I{0}, d_aprox{0};
+            unsigned int  d{0} ;
+            auto it_begin = distances_indexes.ind[0].begin(),
+                 it_end = distances_indexes.ind[0].end(),
+                 it_found = it_end;
+            index_pair ipair{};
+            p = dftMat_.ptr<float>(y);
+            I = p[x];
+            // d_aprox = Modulo<double>(static_cast<double>(x) - mid_size.first, static_cast<double>(y) - mid_size.second);
+            d_aprox = Modulo<double>(static_cast<double>(x) - d_correction.first, static_cast<double>(y) - d_correction.second);
+            // Search index in d= [d_aprox -1, d_aprox, d_aprox +1 ]
+            d = static_cast<unsigned int>(d_aprox);
+            it_begin = distances_indexes.ind[d].begin();
+            it_end = distances_indexes.ind[d].end();
+            ipair[0] = x;
+            ipair[1] = y;
+            it_found = find(it_begin, it_end, ipair);
+            if (it_found!=it_end) p_intensities[th][d].push_back(I);
+
+            if (d!= 0){
+                d--;
+                it_begin = distances_indexes.ind[d].begin();
+                it_end = distances_indexes.ind[d].end();
+                it_found = find(it_begin, it_end, ipair);
+                if (it_found!=it_end) p_intensities[th][d].push_back(I);
+                d++; //Restore old d for next step
+            }
+            if (d!= d_max){
+                d++;
+                it_begin = distances_indexes.ind[d].begin();
+                it_end = distances_indexes.ind[d].end();
+                it_found = find(it_begin, it_end, ipair);
+                if (it_found!=it_end) p_intensities[th][d].push_back(I);
+            }
+            // #pragma omp critical
+            // cout << buf.rdbuf()<<endl;
+        }
+            // debug_counts++;
+    }
+    // cout << "debug_counts: " << debug_counts << endl;
+    // MERGE p_intensities into intensities_at_distance
+    for (int N    = 0;  N < num_threads_; N++ ){
+        for (unsigned int _d = 0 ; _d < d_max + 1; _d++){
+            auto it_end     = intensities_at_distance[_d].end();
+            auto it_p_begin = p_intensities[N][_d].begin();
+            auto it_p_end = p_intensities[N][_d].end();
+            intensities_at_distance[_d].insert(it_end, it_p_begin, it_p_end);
+        }
+    }
+    return intensities_at_distance;
+}
+#endif

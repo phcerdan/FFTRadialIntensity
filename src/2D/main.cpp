@@ -10,8 +10,13 @@ int main(int argc, char* argv[]){
         string output = option_map["output"].as<string>();
         string save_dist = option_map["save_dist"].as<string>();
         string load_dist = option_map["load_dist"].as<string>();
-        auto sim = SAXSsim(input, output, save_dist, load_dist);
 
+        #ifdef ENABLE_PARALLEL
+        int num_threads = option_map["num_threads"].as<int>();
+        auto sim = SAXSsim(input, output, save_dist, load_dist, num_threads);
+        #else
+        auto sim = SAXSsim(input, output, save_dist, load_dist);
+        #endif
     } catch(po_help_exception & e){
         return 1;
     };

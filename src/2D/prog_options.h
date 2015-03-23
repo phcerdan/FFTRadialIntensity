@@ -26,7 +26,12 @@ po::variables_map program_options(const int &argc, char** const & argv)
         ("save_dist,s", po::value<string>()->default_value(""),
               "save distances_indexes to file.")
         ;
-
+#ifdef ENABLE_PARALLEL
+    generic.add_options()
+        ("num_threads,j", po::value<int>()->default_value(1),
+              "number of threads using omp.")
+        ;
+#endif
     po::options_description cmdline_options;
     cmdline_options.add(generic);
 

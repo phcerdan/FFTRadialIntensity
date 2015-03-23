@@ -23,11 +23,20 @@ find_package(Boost COMPONENTS
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 
+IF(ENABLE_PARALLEL)
+    find_package(OpenMP REQUIRED)
+    if(${OPENMP_FOUND})
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    else()
+        message("OpenMP library not found")
+    endif()
+
+    add_definitions(-DENABLE_PARALLEL)
+ENDIF(ENABLE_PARALLEL)
+
 add_subdirectory(2D)
 set(ENABLE_PARALLEL "ON" CACHE BOOL "Enable compiling of parallel version. Requires Thrust Library")
-IF(ENABLE_PARALLEL)
-    add_subdirectory(2DParallel)
-ENDIF(ENABLE_PARALLEL)
 # TEST
 ### Google TEST AND MOCK
 # There must be an environment variable (in .bashrc or profile.d)
@@ -47,7 +56,7 @@ IF(ENABLE_GOOGLE_TEST)
              HINTS ${GMOCK_HOME}/include
              PATH_SUFFIXES gmock
              DOC "gmock include dir")
-    include_directories(${GMOCK_INCLUDE_DIR} ${GTEST_INCLUDE_DIR})
+    include_directories(SYSTEM ${GMOCK_INCLUDE_DIR} ${GTEST_INCLUDE_DIR})
 
     find_library(GTEST_LIBRARY
                 NAMES gtest

@@ -25,7 +25,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <utility>
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 #include "PixelCenterDistances.h"
+#ifdef ENABLE_PARALLEL
+#include <omp.h>
+#endif
 
 class SAXSsim
 {
@@ -36,7 +40,7 @@ public:
 
     SAXSsim() = default;
     SAXSsim(const std::string imgName, std::string outputPlotName = "",
-            std::string save_dist = "", std::string load_dist = "");
+            std::string save_dist = "", std::string load_dist = "", int num_threads = 1);
     virtual ~SAXSsim ();
     cv::Mat & Read(const std::string &imgName);
     void SavePlot(const std::string & fname);
@@ -51,7 +55,9 @@ public:
     intensities_vector intensities_at_distance;
     std::vector<double>&  MeanIntensities();
     std::vector<double> intensities_mean;
-
+#ifdef ENABLE_PARALLEL
+    intensities_vector & ParallelIntensityFromDistanceVector();
+#endif
     void InitializeSizeMembers(const cv::Mat & dftMat);
     std::pair<unsigned int,unsigned int> mid_size;
     std::pair<unsigned int,unsigned int> dft_size;
@@ -62,8 +68,9 @@ public:
 
     cv::Mat I_;
     cv::Mat dftMat_;
-private:
     const std::string inputName_;
+    int num_threads_{1};
+protected:
     index_pair_vector SimetricIndexPairsFromIndexPair(const index_pair &);
     void SimetricIndexes();
     void ExtraIndexOddX();

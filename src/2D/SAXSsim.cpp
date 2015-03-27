@@ -145,8 +145,8 @@ Mat& SAXSsim::DFT(Mat &I){
     Mat magI;
     magnitude(planes[0], planes[1], magI);
     // Switch to logscale.
-    magI += Scalar::all(1);
-    log(magI,magI);
+    // magI += Scalar::all(1);
+    // log(magI,magI);
     //TODO is that & a bit operator to crop back the image?
     // magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
     int cx = magI.cols/2;
@@ -404,6 +404,11 @@ void SAXSsim::Show(){
     waitKey(0);
     destroyWindow("Input Image");
     destroyWindow("DFT:Magnitude");
+}
+void SAXSsim::SaveImage(cv::Mat & img, std::string & output_file){
+    normalize(img, img, 0, 1, NORM_MINMAX, -1, Mat());
+    img.convertTo(img, CV_8UC3, 255.0);
+    imwrite(output_file, img);
 }
 #ifdef ENABLE_PARALLEL
 SAXSsim::intensities_vector & SAXSsim::ParallelIntensityFromDistanceVector(){

@@ -46,7 +46,7 @@ public:
     void SavePlot(const std::string & fname);
     cv::Mat & DFT(cv::Mat & realSpaceMatrix);
     void Show();
-
+    void SaveImage(cv::Mat & img, std::string & output);
     void PixelDistances(const cv::Mat &dualSpaceMatrix);
     void InitializeDistancesIndexes();
     PixelCenterDistances distances_indexes;

@@ -23,15 +23,41 @@ dy = nm_per_pixel;
 dfx = 1.0/(Nx*dx);
 dfy = 1.0/(Ny*dy);
 df = sqrt(dfx*dfx + dfy*dfy);
-
+# Nsize = sqrt(Nx^2 + Ny^2)
+# df = (1.0/Nsize) * (1.0/dx);
+Nmin = min(Nx,Ny);
+dmax = as.integer(Nmin/2)
 q = data[,"d"] * df;
 I = data[,"I"];
 
+q_trim = q[1:dmax]
+I_trim = I[1:dmax]
+plot(q_trim, I_trim, log="xy");
 pdfName = paste(filename, ".pdf", sep='');
 pdf(file=pdfName)
 
-plot(q, I, log=c("x", "y"));
+plot(q, I, log="xy");
+lines(q, I)
 title(fname)
 axis(1, q, outer=TRUE, xpd=TRUE)
 dev.off(); # To switch off plot.
 print(paste("Output pdf file generated:", pdfName));
+
+library("ggplot2")
+library("scales")
+if(q_trim[1] == 0) I_trim[1]=I_trim[2]*10 # for correct I plot limits
+qplot(q_trim, I_trim) +
+    theme_bw() + # white background
+    theme(panel.grid.minor = element_blank()) + # remove minor ticks
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
+                     labels = trans_format("log10", math_format(10^.x))
+                     ) +
+    scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x, n=3),
+                     labels = trans_format("log10", math_format(10^.x))
+                     ) +
+    annotation_logticks(SCALED=FALSE) +
+    # slope = log(yend/y)/log(xend/x)
+    geom_segment( aes(x=10^-2, y=10^5, xend=10^-1, yend=10^4)) +  # slope=-1
+    geom_segment( aes(x=10^-1, y=10^5, xend=10^0, yend=10^3))  # slope=-2
+    # scale_x_continuous(breaks=pretty_breaks(n=10)) +
+    # scale_y_continuous(breaks=pretty_breaks(n=10))

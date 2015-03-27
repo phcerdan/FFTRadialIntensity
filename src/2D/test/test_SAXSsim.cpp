@@ -134,6 +134,28 @@ TEST_F(img4x5_F, PixelDistances){
     }
     EXPECT_EQ(20, total_indexes);
 }
+
+struct disc20_F : public ::testing::Test{
+    static const string img;
+    static shared_ptr<SAXSsim> sim;
+
+    static void SetUpTestCase(){
+        sim = make_shared<SAXSsim>(img) ;
+    };
+};
+const string disc20_F::img{"./fixtures/disc20.tif"};
+shared_ptr<SAXSsim> disc20_F::sim;
+
+TEST_F(disc20_F, showFT){
+    sim->Show();
+    string output_f = "./results/discDFT.jpg";
+    sim->SaveImage(sim->dftMat_, output_f);
+    auto sim20x5 = make_shared<SAXSsim>("./fixtures/disc20x5.tif");
+    sim20x5->Show();
+    output_f = "./results/disc20x5DFT.jpg";
+    sim20x5->SaveImage(sim20x5->dftMat_, output_f);
+}
+
 #ifdef ENABLE_PARALLEL
 struct parallel_img5x5_F : public ::testing::Test{
     static const string img;

@@ -33,7 +33,9 @@ I = data[,"I"];
 q_trim = q[1:dmax]
 I_trim = I[1:dmax]
 plot(q_trim, I_trim, log="xy");
-pdfName = paste(filename, ".pdf", sep='');
+
+library(tools)
+pdfName = paste(file_path_sans_ext(filename), ".pdf", sep='');
 pdf(file=pdfName)
 
 plot(q, I, log="xy");
@@ -49,6 +51,7 @@ if(q_trim[1] == 0) I_trim[1]=I_trim[2]*10 # for correct I plot limits
 qplot(q_trim, I_trim) +
     theme_bw() + # white background
     theme(panel.grid.minor = element_blank()) + # remove minor ticks
+    labs(title = fname, x=expression("q [" ~ nm^{-1} ~"]"), y='I') +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
                      labels = trans_format("log10", math_format(10^.x))
                      ) +
@@ -58,6 +61,10 @@ qplot(q_trim, I_trim) +
     annotation_logticks(SCALED=FALSE) +
     # slope = log(yend/y)/log(xend/x)
     geom_segment( aes(x=10^-2, y=10^5, xend=10^-1, yend=10^4)) +  # slope=-1
-    geom_segment( aes(x=10^-1, y=10^5, xend=10^0, yend=10^3))  # slope=-2
+    geom_text(aes(x=10^-1.4, y=10^4.5 ), label='a = -1', angle = atan2(-1,1) * 180/pi )  +
+    geom_segment( aes(x=10^-1, y=10^5, xend=10^0, yend=10^3)) +  # slope=-2
+    geom_text(aes(x=10^-0.4, y=10^4 ), label='a = -2', angle = atan2(-2,1) * 180/pi ) +
+    geom_segment( aes(x=10^-1, y=10^6, xend=10^0, yend=10^3)) +  # slope=-3
+    geom_text(aes(x=10^-0.4, y=10^5 ), label='a = -3', angle = atan2(-3,1) * 180/pi )
     # scale_x_continuous(breaks=pretty_breaks(n=10)) +
     # scale_y_continuous(breaks=pretty_breaks(n=10))

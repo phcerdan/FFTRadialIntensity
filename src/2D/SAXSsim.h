@@ -44,6 +44,7 @@ public:
     virtual ~SAXSsim ();
     cv::Mat & Read(const std::string &imgName);
     void SavePlot(const std::string & fname);
+    void ShowPlot(const std::string & resultfile, double image_resolution);
     cv::Mat & DFT(cv::Mat & realSpaceMatrix);
     void Show();
     void SaveImage(cv::Mat & img, std::string & output);
@@ -70,6 +71,15 @@ public:
     cv::Mat dftMat_;
     const std::string inputName_;
     int num_threads_{1};
+    /**Structure to save parameters, set at constructor. */
+    struct Input{
+        std::string img;
+        std::string outPlot;
+        std::string saveIndices;
+        std::string loadIndices;
+        int threads{1};
+    };
+    Input input;
 protected:
     index_pair_vector SimetricIndexPairsFromIndexPair(const index_pair &);
     void SimetricIndexes();

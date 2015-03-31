@@ -4,6 +4,12 @@
 using namespace testing;
 using namespace std;
 //static parameters.
+TEST(Learning, NoiseRandom){
+const string img{"./fixtures/noiseRandom200x200.png"};
+shared_ptr<SAXSsim> sim = make_shared<SAXSsim>(img);
+
+sim->ShowPlot(sim->input.outPlot,0.72);
+}
 struct SAXSsimTest : public ::testing::Test{
     static const string img;
     static shared_ptr<SAXSsim> sim;

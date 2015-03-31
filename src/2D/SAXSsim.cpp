@@ -19,6 +19,7 @@ using namespace std;
 SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, string load_dist, int num_threads) :
     inputName_{inputName}, num_threads_{num_threads}
 {
+    input.img = inputName;
     // Measure execution time
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -34,6 +35,7 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
         if (load_dist == ""){
             cout << "Loading suitable serialization archive with distances index"<<endl;
             load_dist = serialization_string;
+            input.loadIndices = load_dist;
         }
         PixelCenterDistances loaded_data;
         {
@@ -58,6 +60,7 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
 
     if(save_dist == "")
         save_dist = serialization_string;
+        input.saveIndices = save_dist;
     {
         boost::filesystem::path opath{save_dist};
         boost::filesystem::create_directories(opath.parent_path());
@@ -73,7 +76,7 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
     if (num_threads_ > max_threads) num_threads_ = max_threads;
     omp_set_num_threads(num_threads_);
     cout << "Number of Threads:" << num_threads_ <<" MaxThreads: " << max_threads << endl;
-
+    input.threads = num_threads_;
     if(num_threads_>1) ParallelIntensityFromDistanceVector();
     else IntensityFromDistanceVector();
 #else
@@ -85,7 +88,8 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
     auto path_no_extension    = opath.stem();
     auto input_no_extension = path_no_extension.generic_string();
     if (outputName == "")
-        outputName = "./results/" + input_no_extension;
+        outputName = "./results/" + input_no_extension + ".plot";
+    input.outPlot = outputName;
     SavePlot(outputName);
     // Show();
 
@@ -107,7 +111,7 @@ void SAXSsim::SavePlot(const string & fname){
 
     boost::filesystem::path opath{fname};
     boost::filesystem::create_directories(opath.parent_path());
-    std::ofstream output_file (fname + ".plot"); // delete everything inside the file(default)
+    std::ofstream output_file (fname); // delete everything inside the file(default)
 
     if (!output_file.is_open()) {
         perror( ("Error creating IvsQ file in " + opath.string() ).c_str());
@@ -127,7 +131,19 @@ void SAXSsim::SavePlot(const string & fname){
     }
     output_file.close();
 }
+void SAXSsim::ShowPlot(const string & resultfile, double image_resolution){
+    // Execute R script to generate pdf with the plot.
+    string command{"./plotI-q.R " + resultfile + " "+ std::to_string(image_resolution)};
+    cout << "executing command: " << command << endl;
+    system(command.c_str());
 
+    // Open generated pdf.
+    int lastindex = resultfile.find_last_of(".");
+    string filename_no_ext = resultfile.substr(0, lastindex);
+    string pdf{"evince " + filename_no_ext + ".pdf"};
+    cout << "opening pdf: " << pdf << endl;
+    system(pdf.c_str());
+}
 Mat& SAXSsim::DFT(Mat &I){
     // Create a new padded image with borders added to original image.
     // Mat padded;

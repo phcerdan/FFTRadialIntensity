@@ -145,13 +145,6 @@ void SAXSsim::ShowPlot(const string & resultfile, double image_resolution){
     system(pdf.c_str());
 }
 Mat& SAXSsim::DFT(Mat &I){
-    // Create a new padded image with borders added to original image.
-    // Mat padded;
-    // int m = getOptimalDFTSize( I.rows );
-    // int n = getOptimalDFTSize( I.cols );
-    // copyMakeBorder(I, padded, 0, m - I.rows, 0, n - I.cols, BORDER_CONSTANT, Scalar::all(0));
-    // The result of dft is complex:
-    // Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
     Mat planes[] = {Mat_<float>(I), Mat::zeros(I.size(), CV_32F)};
     Mat complexI;
     merge(planes, 2, complexI);
@@ -187,147 +180,166 @@ Mat& SAXSsim::DFT(Mat &I){
 }
 
 void SAXSsim::InitializeSizeMembers(const cv::Mat & dftMat){
-
     mid_size  = make_pair (dftMat.cols/2, dftMat.rows/2);
     dft_size  = make_pair (dftMat.cols, dftMat.rows);
+    // Nyquist freq in both directions.
+    // fmax = make_pair (dft_size.first/2.0,dft_size.second/2.0);
+    // dfx = dfy in images.
+
     even_flag = make_pair (dftMat.cols % 2 == 0, dftMat.rows % 2 == 0);
-    double origin_x = even_flag.first ? 0.0 : 0.5;
-    double origin_y = even_flag.second ? 0.0 : 0.5;
-    origin = make_pair(origin_x, origin_y);
+    // double origin_x = even_flag.first ? 0.0 : 0.5;
+    // double origin_y = even_flag.second ? 0.0 : 0.5;
+    // origin = make_pair(origin_x, origin_y);
 
-    double distance_max = Modulo<double>(mid_size.first + origin.first, mid_size.second + origin.second);
-    d_assigned_max = static_cast<unsigned int>(distance_max) + 2;
+    // double distance_max = Modulo<double>(mid_size.first + origin.first, mid_size.second + origin.second);
+    d_assigned_max = min(mid_size.first, mid_size.second) ;
 
-    xi_begin = even_flag.first ? 0 : 1;
-    xi_end = even_flag.first ? mid_size.first : mid_size.first +1;
-    yi_begin = even_flag.second ? 0 : 1;
-    yi_end = even_flag.second ? mid_size.second : mid_size.second +1 ;
+    // xi_begin = even_flag.first ? 0 : 1;
+    // xi_end = even_flag.first ? mid_size.first : mid_size.first +1;
+    // yi_begin = even_flag.second ? 0 : 1;
+    // yi_end = even_flag.second ? mid_size.second : mid_size.second +1 ;
 }
 
 void SAXSsim::InitializeDistancesIndexes(){
     //Initialize distances_indexes with empty vectors from d = 0(1 value) until d_assigned_max.
     index_pair_vector empty_ipv{};
-    for( unsigned int d = 0; d!=d_assigned_max; d++){
+    for( unsigned int d = 0; d <= d_assigned_max; d++){
         distances_indexes.ind.push_back(empty_ipv);
     }
     distances_indexes.Nx  = dft_size.first;
     distances_indexes.Ny  = dft_size.second;
 }
 
-void SAXSsim::SimetricIndexes(){
-
-    double center_distance_prox{0}, x_prox{0}, y_prox{0},
-           center_distance_far{0}, x_far{0}, y_far{0};
-    unsigned int d_assigned{0}, d_prox{0}, d_far{0};
-
-    double xcp{0},ycp{0}, slope{0};
-
-    //Calculate the distance from center of pixel to center of image (0,0);
-    index_pair ipair{};
-    for(unsigned int xi = xi_begin; xi!=xi_end; xi++){
-        for(unsigned int yi = yi_begin; yi!=yi_end; yi++){
-            xcp = even_flag.first? xi + 0.5 : xi ;
-            ycp = even_flag.second? yi + 0.5 : yi ;
-            slope = ycp / xcp; // Cannot be 0.
-
-            if(slope >= 1.0){
-                y_prox = yi - origin.second;
-                x_prox = y_prox / slope;
-                y_far = yi + 1 -origin.second;
-                x_far = y_far / slope;
-            } else {
-                x_prox = xi - origin.first;
-                y_prox = slope * x_prox ;
-                x_far = xi + 1 -origin.first;
-                y_far = slope *x_far;
-            }
-
-            center_distance_prox = Modulo<double>(x_prox, y_prox);
-            center_distance_far = Modulo<double> (x_far, y_far);
-            d_prox              = static_cast<unsigned int> (center_distance_prox);
-            d_far               = static_cast<unsigned int> (center_distance_far);
-            if (center_distance_far - trunc(center_distance_far) < 5*std::numeric_limits<double>::epsilon())
-                d_assigned          = d_far - 1;
-            else
-                d_assigned          = d_far;
-
-            // std::cout<<"center_distance_prox " << center_distance_prox<<" center_distance_far"<< center_distance_far<< " d_assigned: " << d_assigned << " " << xi << " " << yi << std::endl;
-            ipair[0] = xi; ipair[1] =yi;
-            index_pair_vector v = SimetricIndexPairsFromIndexPair(ipair);
-            auto it             = distances_indexes.ind[d_assigned].end();
-            distances_indexes.ind[d_assigned].insert(it, v.begin(), v.end());
-
-            if (d_far - d_prox == 2 && d_assigned != d_far - 1){
-                unsigned int d_extra = d_far - 1;
-                index_pair_vector v = SimetricIndexPairsFromIndexPair(ipair);
-                auto it             = distances_indexes.ind[d_extra].end();
-                distances_indexes.ind[d_extra].insert(it, v.begin(), v.end());
-            // std::cout<<" d_extra: " << d_extra << " " << xi << " " << yi << std::endl;
-            }
-        }
-    }
-}
-
-void SAXSsim::ExtraIndexOddX(){
-    double y_prox{0};
-    unsigned int d_assigned{0};
-    index_pair ipair{};
-
-    for (unsigned int di = yi_begin; di!= yi_end; di++){
-        y_prox     = di - origin.second;
-        if(y_prox < 0.0) y_prox = 0.0;
-        if ( y_prox - trunc(y_prox) < 5*std::numeric_limits<double>::epsilon())
-            d_assigned = static_cast<unsigned int>(y_prox);
-        else
-            d_assigned  = static_cast<unsigned int>(y_prox) + 1;
-
-        ipair[0] = mid_size.second;
-        ipair[1] = mid_size.first + di;
-        distances_indexes.ind[d_assigned].push_back(ipair);
-        ipair[0] = mid_size.second;
-        ipair[1] = dft_size.first - 1  - mid_size.first - di;
-        distances_indexes.ind[d_assigned].push_back(ipair);
-    }
-}
-
-void SAXSsim::ExtraIndexOddY(){
-
-    double x_prox{0};
-    unsigned int d_assigned{0};
-    index_pair ipair{};
-
-    for (unsigned int di = xi_begin; di!= xi_end; di++){
-        x_prox     = di - origin.first;
-        if(x_prox < 0.0) x_prox = 0.0;
-        if ( x_prox - trunc(x_prox) < 5*std::numeric_limits<double>::epsilon())
-            d_assigned = static_cast<unsigned int>(x_prox);
-        else
-            d_assigned  = static_cast<unsigned int>(x_prox) + 1;
-        ipair[0] = mid_size.second + di;
-        ipair[1] = mid_size.first ;
-        distances_indexes.ind[d_assigned].push_back(ipair);
-        ipair[0] = dft_size.second -1 -mid_size.second - di;
-        ipair[1] = mid_size.first ;
-        distances_indexes.ind[d_assigned].push_back(ipair);
-    }
-}
-
-void SAXSsim::ExtraIndexOddBoth(){
-    index_pair ipair{};
-    ipair[0] = mid_size.first ;
-    ipair[1] = mid_size.second ;
-    distances_indexes.ind[0].push_back(ipair);
-}
+// void SAXSsim::SimetricIndexes(){
+//
+//     double center_distance_prox{0}, x_prox{0}, y_prox{0},
+//            center_distance_far{0}, x_far{0}, y_far{0};
+//     unsigned int d_assigned{0}, d_prox{0}, d_far{0};
+//
+//     double xcp{0},ycp{0}, slope{0};
+//
+//     //Calculate the distance from center of pixel to center of image (0,0);
+//     index_pair ipair{};
+//     for(unsigned int xi = xi_begin; xi!=xi_end; xi++){
+//         for(unsigned int yi = yi_begin; yi!=yi_end; yi++){
+//             xcp = even_flag.first? xi + 0.5 : xi ;
+//             ycp = even_flag.second? yi + 0.5 : yi ;
+//             slope = ycp / xcp; // Cannot be 0.
+//
+//             if(slope >= 1.0){
+//                 y_prox = yi - origin.second;
+//                 x_prox = y_prox / slope;
+//                 y_far = yi + 1 -origin.second;
+//                 x_far = y_far / slope;
+//             } else {
+//                 x_prox = xi - origin.first;
+//                 y_prox = slope * x_prox ;
+//                 x_far = xi + 1 -origin.first;
+//                 y_far = slope *x_far;
+//             }
+//
+//             center_distance_prox = Modulo<double>(x_prox, y_prox);
+//             center_distance_far = Modulo<double> (x_far, y_far);
+//             d_prox              = static_cast<unsigned int> (center_distance_prox);
+//             d_far               = static_cast<unsigned int> (center_distance_far);
+//             if (center_distance_far - trunc(center_distance_far) < 5*std::numeric_limits<double>::epsilon())
+//                 d_assigned          = d_far - 1;
+//             else
+//                 d_assigned          = d_far;
+//
+//             // std::cout<<"center_distance_prox " << center_distance_prox<<" center_distance_far"<< center_distance_far<< " d_assigned: " << d_assigned << " " << xi << " " << yi << std::endl;
+//             ipair[0] = xi; ipair[1] =yi;
+//             index_pair_vector v = SimetricIndexPairsFromIndexPair(ipair);
+//             auto it             = distances_indexes.ind[d_assigned].end();
+//             distances_indexes.ind[d_assigned].insert(it, v.begin(), v.end());
+//
+//             if (d_far - d_prox == 2 && d_assigned != d_far - 1){
+//                 unsigned int d_extra = d_far - 1;
+//                 index_pair_vector v = SimetricIndexPairsFromIndexPair(ipair);
+//                 auto it             = distances_indexes.ind[d_extra].end();
+//                 distances_indexes.ind[d_extra].insert(it, v.begin(), v.end());
+//             // std::cout<<" d_extra: " << d_extra << " " << xi << " " << yi << std::endl;
+//             }
+//         }
+//     }
+// }
+//
+// void SAXSsim::ExtraIndexOddX(){
+//     double y_prox{0};
+//     unsigned int d_assigned{0};
+//     index_pair ipair{};
+//
+//     for (unsigned int di = yi_begin; di!= yi_end; di++){
+//         y_prox     = di - origin.second;
+//         if(y_prox < 0.0) y_prox = 0.0;
+//         if ( y_prox - trunc(y_prox) < 5*std::numeric_limits<double>::epsilon())
+//             d_assigned = static_cast<unsigned int>(y_prox);
+//         else
+//             d_assigned  = static_cast<unsigned int>(y_prox) + 1;
+//
+//         ipair[0] = mid_size.second;
+//         ipair[1] = mid_size.first + di;
+//         distances_indexes.ind[d_assigned].push_back(ipair);
+//         ipair[0] = mid_size.second;
+//         ipair[1] = dft_size.first - 1  - mid_size.first - di;
+//         distances_indexes.ind[d_assigned].push_back(ipair);
+//     }
+// }
+//
+// void SAXSsim::ExtraIndexOddY(){
+//
+//     double x_prox{0};
+//     unsigned int d_assigned{0};
+//     index_pair ipair{};
+//
+//     for (unsigned int di = xi_begin; di!= xi_end; di++){
+//         x_prox     = di - origin.first;
+//         if(x_prox < 0.0) x_prox = 0.0;
+//         if ( x_prox - trunc(x_prox) < 5*std::numeric_limits<double>::epsilon())
+//             d_assigned = static_cast<unsigned int>(x_prox);
+//         else
+//             d_assigned  = static_cast<unsigned int>(x_prox) + 1;
+//         ipair[0] = mid_size.second + di;
+//         ipair[1] = mid_size.first ;
+//         distances_indexes.ind[d_assigned].push_back(ipair);
+//         ipair[0] = dft_size.second -1 -mid_size.second - di;
+//         ipair[1] = mid_size.first ;
+//         distances_indexes.ind[d_assigned].push_back(ipair);
+//     }
+// }
+//
+// void SAXSsim::ExtraIndexOddBoth(){
+//     index_pair ipair{};
+//     ipair[0] = mid_size.first ;
+//     ipair[1] = mid_size.second ;
+//     distances_indexes.ind[0].push_back(ipair);
+// }
 
 void SAXSsim::PixelDistances(const Mat &dftMat){
     InitializeSizeMembers(dftMat);
     InitializeDistancesIndexes();
-
-    SimetricIndexes();
-
-    if (!even_flag.first)  ExtraIndexOddX();
-    if (!even_flag.second) ExtraIndexOddY();
-    if (!even_flag.first && !even_flag.second) ExtraIndexOddBoth();
+    double f;
+    unsigned int d_assigned;
+    index_pair ipair{};
+    // Calculate indexes of the upper half of the FFT image. FFT simetric.
+    for(int xi = 0; xi <= mid_size.first ; xi++){
+       for(int yi = 0; yi <= mid_size.second; yi++){
+           f          = Modulo(xi,yi);
+           d_assigned = static_cast<int>(f);
+           if(d_assigned > d_assigned_max) continue;
+           ipair[0] = mid_size.first  + xi;
+           ipair[1] = mid_size.second   - yi;
+           distances_indexes.ind[d_assigned].push_back(ipair);
+           // if (xi == 0) continue;
+           ipair[0] = mid_size.first   + xi;
+           distances_indexes.ind[d_assigned].push_back(ipair);
+       }
+    }
+    // SimetricIndexes();
+    //
+    // if (!even_flag.first)  ExtraIndexOddX();
+    // if (!even_flag.second) ExtraIndexOddY();
+    // if (!even_flag.first && !even_flag.second) ExtraIndexOddBoth();
 
 }
 
@@ -378,10 +390,9 @@ SAXSsim::intensities_vector & SAXSsim::IntensityFromDistanceVector(){
     for(unsigned int y = 0; y!=distances_indexes.Ny; y++){
         p = dftMat_.ptr<float>(y);
         for(unsigned int x = 0; x!=distances_indexes.Nx; x++){
-
+            d_aprox = Modulo<double>(x , y);
+            if (Modulo(x,y) > d_assigned_max) continue;
             I = p[x];
-            // d_aprox = Modulo<double>(static_cast<double>(x) - mid_size.first, static_cast<double>(y) - mid_size.second);
-            d_aprox = Modulo<double>(static_cast<double>(x) - d_correction.first, static_cast<double>(y) - d_correction.second);
             // Search index in d= [d_aprox -1, d_aprox, d_aprox +1 ]
             d = static_cast<unsigned int>(d_aprox);
             it_begin = distances_indexes.ind[d].begin();
@@ -391,21 +402,21 @@ SAXSsim::intensities_vector & SAXSsim::IntensityFromDistanceVector(){
             it_found = find(it_begin, it_end, ipair);
             if (it_found!=it_end) intensities_at_distance[d].push_back(I);
 
-            if (d!= 0){
-                d--;
-                it_begin = distances_indexes.ind[d].begin();
-                it_end = distances_indexes.ind[d].end();
-                it_found = find(it_begin, it_end, ipair);
-                if (it_found!=it_end) intensities_at_distance[d].push_back(I);
-                d++; //Restore old d for next step
-            }
-            if (d!= d_max){
-                d++;
-                it_begin = distances_indexes.ind[d].begin();
-                it_end = distances_indexes.ind[d].end();
-                it_found = find(it_begin, it_end, ipair);
-                if (it_found!=it_end) intensities_at_distance[d].push_back(I);
-            }
+            // if (d!= 0){
+            //     d--;
+            //     it_begin = distances_indexes.ind[d].begin();
+            //     it_end = distances_indexes.ind[d].end();
+            //     it_found = find(it_begin, it_end, ipair);
+            //     if (it_found!=it_end) intensities_at_distance[d].push_back(I);
+            //     d++; //Restore old d for next step
+            // }
+            // if (d!= d_max){
+            //     d++;
+            //     it_begin = distances_indexes.ind[d].begin();
+            //     it_end = distances_indexes.ind[d].end();
+            //     it_found = find(it_begin, it_end, ipair);
+            //     if (it_found!=it_end) intensities_at_distance[d].push_back(I);
+            // }
             // debug_counts++;
         }
     }

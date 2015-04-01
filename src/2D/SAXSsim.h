@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class SAXSsim
 {
 public:
-    using index_pair        = std::array<unsigned int, 2>;
+    using index_pair        = std::array< int, 2>;
     using index_pair_vector = std::vector<index_pair>;
     using intensities_vector =  std::vector<std::vector<double> > ;
 
@@ -49,8 +49,8 @@ public:
     void Show();
     void SaveImage(cv::Mat & img, std::string & output);
     void PixelDistances(const cv::Mat &dualSpaceMatrix);
-    void InitializeDistancesIndexes();
-    PixelCenterDistances distances_indexes;
+    void InitializeDistancesIndices();
+    PixelCenterDistances distance_indices;
 
     intensities_vector & IntensityFromDistanceVector();
     intensities_vector intensities_at_distance;
@@ -60,12 +60,12 @@ public:
     intensities_vector & ParallelIntensityFromDistanceVector();
 #endif
     void InitializeSizeMembers(const cv::Mat & dftMat);
-    std::pair<unsigned int,unsigned int> mid_size;
-    std::pair<unsigned int,unsigned int> dft_size;
+    std::pair< int, int> mid_size;
+    std::pair< int, int> dft_size;
     std::pair<bool, bool> even_flag;
     std::pair<double,double> origin;
-    unsigned int d_assigned_max{0};
-    unsigned int xi_begin{0}, xi_end{0}, yi_begin{0}, yi_end{0};
+    int d_assigned_max{0};
+    int xi_begin{0}, xi_end{0}, yi_begin{0}, yi_end{0};
 
     cv::Mat I_;
     cv::Mat dftMat_;
@@ -80,9 +80,12 @@ public:
         int threads{1};
     };
     Input input;
+    void logDFT(cv::Mat &D);
 protected:
+    void CheckEqualDimension();
+    bool log_flag_{false};
     index_pair_vector SimetricIndexPairsFromIndexPair(const index_pair &);
-    void SimetricIndexes();
+    void SimetricIndices();
     void ExtraIndexOddX();
     void ExtraIndexOddY();
     void ExtraIndexOddBoth();

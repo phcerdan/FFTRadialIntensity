@@ -20,19 +20,20 @@ nm_per_pixel = as.numeric(nm_per_pixel);
 
 dx = nm_per_pixel;
 dy = nm_per_pixel;
-dfx = 1.0/(Nx*dx);
-dfy = 1.0/(Ny*dy);
-df = sqrt(dfx*dfx + dfy*dfy);
+dfx = 1.0/(dx);
+dfy = 1.0/(dy);
+df = min(dfx, dfy);
+# df = sqrt(dfx*dfx + dfy*dfy);
 # Nsize = sqrt(Nx^2 + Ny^2)
 # df = (1.0/Nsize) * (1.0/dx);
 Nmin = min(Nx,Ny);
 dmax = as.integer(Nmin/2)
-q = data[,"d"] * df;
+q = data[,"d"] * df / Nmin;
 I = data[,"I"];
 
-q_trim = q[1:dmax]
-I_trim = I[1:dmax]
-plot(q_trim, I_trim, log="xy");
+# q_trim = q[1:dmax]
+# I_trim = I[1:dmax]
+# plot(q_trim, I_trim, log="xy");
 
 library(tools)
 pdfName = paste(file_path_sans_ext(filename), ".pdf", sep='');
@@ -47,10 +48,11 @@ print(paste("Output pdf file generated:", pdfName));
 
 library("ggplot2")
 library("scales")
-if(q_trim[1] == 0) I_trim[1]=I_trim[2]*10 # for correct I plot limits
-qplot(q_trim, I_trim) +
+if(q[1] == 0) I[1]=I[2]*10 # for correct I plot limits
+ggplot(q, I, aes(x, y)) 
     theme_bw() + # white background
     theme(panel.grid.minor = element_blank()) + # remove minor ticks
+    geom_line() +
     labs(title = fname, x=expression("q [" ~ nm^{-1} ~"]"), y='I') +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
                      labels = trans_format("log10", math_format(10^.x))
@@ -58,13 +60,12 @@ qplot(q_trim, I_trim) +
     scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x, n=3),
                      labels = trans_format("log10", math_format(10^.x))
                      ) +
-    annotation_logticks(SCALED=FALSE) +
+    annotation_logticks(SCALED=FALSE)
+#### DRAW SEGMENTS ### 
     # slope = log(yend/y)/log(xend/x)
-    geom_segment( aes(x=10^-2, y=10^5, xend=10^-1, yend=10^4)) +  # slope=-1
-    geom_text(aes(x=10^-1.4, y=10^4.5 ), label='a = -1', angle = atan2(-1,1) * 180/pi )  +
-    geom_segment( aes(x=10^-1, y=10^5, xend=10^0, yend=10^3)) +  # slope=-2
-    geom_text(aes(x=10^-0.4, y=10^4 ), label='a = -2', angle = atan2(-2,1) * 180/pi ) +
-    geom_segment( aes(x=10^-1, y=10^6, xend=10^0, yend=10^3)) +  # slope=-3
-    geom_text(aes(x=10^-0.4, y=10^5 ), label='a = -3', angle = atan2(-3,1) * 180/pi )
-    # scale_x_continuous(breaks=pretty_breaks(n=10)) +
-    # scale_y_continuous(breaks=pretty_breaks(n=10))
+    # geom_segment( aes(x=10^-2, y=10^5, xend=10^-1, yend=10^4)) +  # slope=-1
+    # geom_text(aes(x=10^-1.4, y=10^4.5 ), label='a = -1', angle = atan2(-1,1) * 180/pi )  +
+    # geom_segment( aes(x=10^-1, y=10^5, xend=10^0, yend=10^3)) +  # slope=-2
+    # geom_text(aes(x=10^-0.4, y=10^4 ), label='a = -2', angle = atan2(-2,1) * 180/pi ) +
+    # geom_segment( aes(x=10^-1, y=10^6, xend=10^0, yend=10^3)) +  # slope=-3
+    # geom_text(aes(x=10^-0.4, y=10^5 ), label='a = -3', angle = atan2(-3,1) * 180/pi )

@@ -4,15 +4,15 @@
 #include <boost/serialization/array.hpp>
 struct PixelCenterDistances {
     PixelCenterDistances() = default;
-    using index_pair        = std::array<unsigned int, 2>;
+    using index_pair        = std::array<int, 2>;
     using index_pair_vector = std::vector<index_pair>;
-    unsigned int Nx;
-    unsigned int Ny;
-    // unsigned int max;
+    int Nx;
+    int Ny;
+    // int max;
     std::vector<index_pair_vector> ind;
 
     template<class Archive>
-    void serialize(Archive & archive, const unsigned int)
+    void serialize(Archive & archive, const int)
     {
         archive & Nx & Ny & ind ;
     }

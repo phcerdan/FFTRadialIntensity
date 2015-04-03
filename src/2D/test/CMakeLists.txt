@@ -1,6 +1,5 @@
 include_directories(SYSTEM ${GMOCK_INCLUDE_DIR} ${GTEST_INCLUDE_DIR})
 include_directories("..")
-find_package(Threads)
 file(COPY "../../fixtures" DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
 add_executable(test_SAXSsim.exe test_SAXSsim.cpp)
 set_source_files_properties (test_SAXSsim.exe PROPERTIES COMPILE_FLAGS "-Wno-sign-compare")

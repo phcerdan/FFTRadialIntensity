@@ -15,11 +15,11 @@ find_package(OpenCV)
 include_directories( ${OpenCV_INCLUDE_DIRS})
 message(status "** IncludeOpenCVDirs: ${OpenCV_INCLUDE_DIRS}")
 # message(status "** Libraries: ${OpenCV_LIBS}")
-find_package(Boost COMPONENTS
+find_package(Boost 1.57.0 COMPONENTS
         system filesystem
         program_options
         serialization
-        REQUIRED)
+        REQUIRED )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 
@@ -36,7 +36,7 @@ IF(ENABLE_PARALLEL)
 ENDIF(ENABLE_PARALLEL)
 
 add_subdirectory(2D)
-set(ENABLE_PARALLEL "ON" CACHE BOOL "Enable compiling of parallel version. Requires Thrust Library")
+set(ENABLE_PARALLEL "ON" CACHE BOOL "Enable to use openMP")
 # TEST
 ### Google TEST AND MOCK
 # There must be an environment variable (in .bashrc or profile.d)

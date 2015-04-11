@@ -1,4 +1,9 @@
 #include "SAXSsim.h"
+#include <itkForwardFFTImageFilter.h>
+#include <itkFFTShiftImageFilter.h>
+#include "itkComplexToModulusImageFilter.h"
+#include <itkLogImageFilter.h>
+#include <itkCastImageFilter.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
@@ -15,6 +20,7 @@ using serialize_output_type = boost::archive::text_oarchive;
 // using cereal_input_type = cereal::JSONInputArchive;
 // using cereal_output_type = cereal::JSONOutputArchive;
 using namespace cv;
+using namespace itk;
 using namespace std;
 SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, string load_dist, int num_threads) :
     inputName_{inputName}, num_threads_{num_threads}
@@ -25,7 +31,7 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
     start = std::chrono::system_clock::now();
 
     Read(inputName_);
-    DFT(I_);
+    DFT();
     string serialization_string = "./serialization/x"+ std::to_string(dft_size.first) + "_y" + std::to_string(dft_size.second);
     if(load_dist =="" && ! boost::filesystem::exists(serialization_string) ){
         cout << "Computing new set of distances_index..." << endl;
@@ -100,17 +106,35 @@ SAXSsim::SAXSsim(const string inputName, string outputName, string save_dist, st
 }
 SAXSsim::~SAXSsim(){}
 
-Mat& SAXSsim::Read(const string &inputName){
-    I_ = imread(inputName.c_str(), IMREAD_GRAYSCALE);
-    if(I_.empty()) throw
-        runtime_error("Read failed for image: " + inputName + " .Empty matrix");
+SAXSsim::InputImageType* & SAXSsim::Read(const string &inputName){
+    // Reader
+    typedef itk::ImageFileReader< InputImageType > ReaderType;
+    auto reader = ReaderType::New();
+
+    // IO type
+    typedef itk::SCIFIOImageIO  ImageIOType;
+    auto scifioIO = ImageIOType::New();
+
+    reader->SetImageIO(scifioIO);
+    reader->SetFileName( inputName );
+
+    try {
+        reader->Update();
+    } catch( itk::ExceptionObject & excp ) {
+        std::cerr << "Problem encoutered while reading image file : " <<
+            inputName << std::endl;
+    }
+
+    I_ = *reader->GetOutput();
     CheckEqualDimension();
     return I_;
 }
 
 void SAXSsim::CheckEqualDimension(){
-    auto s = I_.size();
-    if(I_.cols != I_.rows) throw runtime_error("Input Image must have equal dimension in x and y");
+    auto &region = I_->GetLargestPossibleRegion();
+    auto x      = region.GetSize()[0];
+    auto y      = region.GetSize()[1];
+    if(x != y) throw runtime_error("Input Image must have equal dimension in x and y");
 }
 void SAXSsim::SavePlot(const string & fname){
 
@@ -150,42 +174,46 @@ void SAXSsim::ShowPlot(const string & resultfile, double image_resolution){
     system(pdf.c_str());
 }
 void SAXSsim::logDFT(Mat &D){
+    typedef itk::ComplexToModulusImageFilter<DFTImageType, RealImageType> FftModulusType;
+    auto modulusFilter = FftModulusType::New();
+    modulusFilter->SetInput(dftMat_);
+    modulusFilter->Update();
+    fftModulus_ = modulusFilter->GetOutput();
+
+    typedef itk::LogImageFilter<RealImageType, RealImageType> LogFilterType;
+    auto logFilter = LogFilterType::New();
+    logFilter->SetInput(fftModulus_);
+    logFilter->Update();
+    fftModulus_ = logFilter->GetOutput();
     D += Scalar::all(1);
     log(D,D);
     log_flag_ = true;
 }
-Mat& SAXSsim::DFT(Mat &I){
-    Mat planes[] = {Mat_<float>(I), Mat::zeros(I.size(), CV_32F)};
-    Mat complexI;
-    merge(planes, 2, complexI);
-    dft(complexI, complexI);
-    // planes[0] = Re(DFT(I)), planes[1] = Im(DFT(I))
-    split(complexI, planes);
-    Mat magI;
-    magnitude(planes[0], planes[1], magI);
-    // Switch to logscale.
-    // magI += Scalar::all(1);
-    // log(magI,magI);
-    //TODO is that & a bit operator to crop back the image?
-    // magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
-    int cx = magI.cols/2;
-    int cy = magI.rows/2;
 
-    Mat q0(magI, Rect(0, 0, cx, cy));   // Top-Left
-    Mat q1(magI, Rect(cx, 0, cx, cy));  // Top-Right
-    Mat q2(magI, Rect(0, cy, cx, cy));  // Bottom-Left
-    Mat q3(magI, Rect(cx, cy, cx, cy)); // Bottom-Right
-    // swap quadrants (Top-Left with Bottom-Right)
-    Mat tmp;
-    q0.copyTo(tmp);
-    q3.copyTo(q0);
-    tmp.copyTo(q3);
-    // swap quadrant (Top-Right with Bottom-Left)
-    q1.copyTo(tmp);
-    q2.copyTo(q1);
-    tmp.copyTo(q2);
-    dftMat_ = magI.clone();
-    dft_size  = make_pair (dftMat_.cols, dftMat_.rows);
+SAXSsim::DFTImageType* & SAXSsim::DFT(){
+    // Tranform the input image to real value to perform FFT.
+    typedef itk::CastImageFilter< InputImageType, RealImageType > FilterType;
+    auto filter = FilterType::New();
+    filter->SetInput(I_);
+    filter->Update();
+    RealImageType* realI_ = filter->GetOutput();
+
+    // FFT
+    typedef itk::ForwardFFTImageFilter<RealImageType, DFTImageType> fFFTType;
+    fFFTType::Pointer fft = fFFTType::New();
+    fft->SetInput(realI_);
+    fft->Update();
+    dftMat_ = fft->GetOutput();
+
+    // Shift/Center FFT.
+    // If the image is odd, the inverse transform of a shifted image
+    // requires SetInverse(True) on the inverseFFT filter.
+    typedef itk::FFTShiftImageFilter<DFTImageType, DFTImageType> ShiftType;
+    auto shift = ShiftType::New();
+    shift->SetInput(dftMat_);
+    shift->Update();
+    dftMat_ = shift->GetOutput();
+
     return dftMat_;
 }
 
@@ -210,162 +238,6 @@ void SAXSsim::InitializeSizeMembers(const cv::Mat & dftMat){
     // yi_end = even_flag.second ? mid_size.second : mid_size.second +1 ;
 }
 
-void SAXSsim::InitializeDistancesIndices(){
-    //Initialize distance_indices with empty vectors from d = 0(1 value) until d_assigned_max.
-    index_pair_vector empty_ipv{};
-    for( int d = 0; d <= d_assigned_max; d++){
-        distance_indices.ind.push_back(empty_ipv);
-    }
-    distance_indices.Nx  = dft_size.first;
-    distance_indices.Ny  = dft_size.second;
-}
-
-// void SAXSsim::SimetricIndices(){
-//
-//     double center_distance_prox{0}, x_prox{0}, y_prox{0},
-//            center_distance_far{0}, x_far{0}, y_far{0};
-//     int d_assigned{0}, d_prox{0}, d_far{0};
-//
-//     double xcp{0},ycp{0}, slope{0};
-//
-//     //Calculate the distance from center of pixel to center of image (0,0);
-//     index_pair ipair{};
-//     for(int xi = xi_begin; xi!=xi_end; xi++){
-//         for(int yi = yi_begin; yi!=yi_end; yi++){
-//             xcp = even_flag.first? xi + 0.5 : xi ;
-//             ycp = even_flag.second? yi + 0.5 : yi ;
-//             slope = ycp / xcp; // Cannot be 0.
-//
-//             if(slope >= 1.0){
-//                 y_prox = yi - origin.second;
-//                 x_prox = y_prox / slope;
-//                 y_far = yi + 1 -origin.second;
-//                 x_far = y_far / slope;
-//             } else {
-//                 x_prox = xi - origin.first;
-//                 y_prox = slope * x_prox ;
-//                 x_far = xi + 1 -origin.first;
-//                 y_far = slope *x_far;
-//             }
-//
-//             center_distance_prox = Modulo<double>(x_prox, y_prox);
-//             center_distance_far = Modulo<double> (x_far, y_far);
-//             d_prox              = static_cast<int> (center_distance_prox);
-//             d_far               = static_cast<int> (center_distance_far);
-//             if (center_distance_far - trunc(center_distance_far) < 5*std::numeric_limits<double>::epsilon())
-//                 d_assigned          = d_far - 1;
-//             else
-//                 d_assigned          = d_far;
-//
-//             // std::cout<<"center_distance_prox " << center_distance_prox<<" center_distance_far"<< center_distance_far<< " d_assigned: " << d_assigned << " " << xi << " " << yi << std::endl;
-//             ipair[0] = xi; ipair[1] =yi;
-//             index_pair_vector v = SimetricIndexPairsFromIndexPair(ipair);
-//             auto it             = distance_indices.ind[d_assigned].end();
-//             distance_indices.ind[d_assigned].insert(it, v.begin(), v.end());
-//
-//             if (d_far - d_prox == 2 && d_assigned != d_far - 1){
-//                 int d_extra = d_far - 1;
-//                 index_pair_vector v = SimetricIndexPairsFromIndexPair(ipair);
-//                 auto it             = distance_indices.ind[d_extra].end();
-//                 distance_indices.ind[d_extra].insert(it, v.begin(), v.end());
-//             // std::cout<<" d_extra: " << d_extra << " " << xi << " " << yi << std::endl;
-//             }
-//         }
-//     }
-// }
-//
-// void SAXSsim::ExtraIndexOddX(){
-//     double y_prox{0};
-//     int d_assigned{0};
-//     index_pair ipair{};
-//
-//     for (int di = yi_begin; di!= yi_end; di++){
-//         y_prox     = di - origin.second;
-//         if(y_prox < 0.0) y_prox = 0.0;
-//         if ( y_prox - trunc(y_prox) < 5*std::numeric_limits<double>::epsilon())
-//             d_assigned = static_cast<int>(y_prox);
-//         else
-//             d_assigned  = static_cast<int>(y_prox) + 1;
-//
-//         ipair[0] = mid_size.second;
-//         ipair[1] = mid_size.first + di;
-//         distance_indices.ind[d_assigned].push_back(ipair);
-//         ipair[0] = mid_size.second;
-//         ipair[1] = dft_size.first - 1  - mid_size.first - di;
-//         distance_indices.ind[d_assigned].push_back(ipair);
-//     }
-// }
-//
-// void SAXSsim::ExtraIndexOddY(){
-//
-//     double x_prox{0};
-//     int d_assigned{0};
-//     index_pair ipair{};
-//
-//     for (int di = xi_begin; di!= xi_end; di++){
-//         x_prox     = di - origin.first;
-//         if(x_prox < 0.0) x_prox = 0.0;
-//         if ( x_prox - trunc(x_prox) < 5*std::numeric_limits<double>::epsilon())
-//             d_assigned = static_cast<int>(x_prox);
-//         else
-//             d_assigned  = static_cast<int>(x_prox) + 1;
-//         ipair[0] = mid_size.second + di;
-//         ipair[1] = mid_size.first ;
-//         distance_indices.ind[d_assigned].push_back(ipair);
-//         ipair[0] = dft_size.second -1 -mid_size.second - di;
-//         ipair[1] = mid_size.first ;
-//         distance_indices.ind[d_assigned].push_back(ipair);
-//     }
-// }
-//
-// void SAXSsim::ExtraIndexOddBoth(){
-//     index_pair ipair{};
-//     ipair[0] = mid_size.first ;
-//     ipair[1] = mid_size.second ;
-//     distance_indices.ind[0].push_back(ipair);
-// }
-
-void SAXSsim::PixelDistances(const Mat &dftMat){
-    InitializeSizeMembers(dftMat);
-    InitializeDistancesIndices();
-    double f;
-    int d_assigned;
-    index_pair ipair{};
-    // Calculate indices of the upper half of the FFT image. FFT simetric.
-    for(int xi = 0; xi <= mid_size.first ; xi++){
-       for(int yi = 0; yi <= mid_size.second; yi++){
-           f          = Modulo(xi,yi);
-           d_assigned = static_cast<int>(f);
-           if(d_assigned > d_assigned_max) continue;
-           ipair[0] = mid_size.first  - xi;
-           ipair[1] = mid_size.second   - yi;
-           distance_indices.ind[d_assigned].push_back(ipair);
-           // if (xi == 0) continue;
-           if (even_flag.first && xi == mid_size.first) continue;
-           if (xi == 0) continue;
-
-           ipair[0] = mid_size.first + xi ;
-           distance_indices.ind[d_assigned].push_back(ipair);
-       }
-    }
-    // SimetricIndices();
-    //
-    // if (!even_flag.first)  ExtraIndexOddX();
-    // if (!even_flag.second) ExtraIndexOddY();
-    // if (!even_flag.first && !even_flag.second) ExtraIndexOddBoth();
-
-}
-
-SAXSsim::index_pair_vector SAXSsim::SimetricIndexPairsFromIndexPair(const SAXSsim::index_pair &ind_pair){
-    int x1     = mid_size.first + ind_pair[0];
-    int y1     = mid_size.second + ind_pair[1];
-    index_pair p1{x1,y1};
-    index_pair p2{x1, dft_size.second -1 -y1};
-    index_pair p3{dft_size.first -1 - x1, y1};
-    index_pair p4{ dft_size.first -1 - x1, dft_size.second -1 - y1};
-
-    return index_pair_vector{p1, p2, p3, p4};
-}
 
 std::vector<double> & SAXSsim::MeanIntensities(){
     int d{0};

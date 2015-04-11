@@ -18,6 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SAXSsim_H_
 
 #include "opencv2/core/core.hpp"
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+#include "itkSCIFIOImageIO.h"
 #include <boost/filesystem.hpp>
 #include <string>
 #include <vector>
@@ -26,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <cmath>
 #include <chrono>
-#include "PixelCenterDistances.h"
 #ifdef ENABLE_PARALLEL
 #include <omp.h>
 #endif
@@ -34,23 +36,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class SAXSsim
 {
 public:
-    using index_pair        = std::array< int, 2>;
-    using index_pair_vector = std::vector<index_pair>;
+    // ITK Image Type
+    const static unsigned int  Dimension = 2;
+    typedef unsigned int       InputPixelType;
+    typedef double             RealPixelType;
+    typedef itk::Image< InputPixelType, Dimension> InputImageType;
+    typedef itk::Image< RealPixelType, Dimension>   RealImageType;
+    typedef itk::Image< std::complex<RealPixelType>, Dimension> DFTImageType;
+
     using intensities_vector =  std::vector<std::vector<double> > ;
 
     SAXSsim() = default;
     SAXSsim(const std::string imgName, std::string outputPlotName = "",
             std::string save_dist = "", std::string load_dist = "", int num_threads = 1);
     virtual ~SAXSsim ();
-    cv::Mat & Read(const std::string &imgName);
+    InputImageType* & Read(const std::string &imgName);
+    DFTImageType* & DFT();
     void SavePlot(const std::string & fname);
     void ShowPlot(const std::string & resultfile, double image_resolution);
-    cv::Mat & DFT(cv::Mat & realSpaceMatrix);
     void Show();
     void SaveImage(cv::Mat & img, std::string & output);
-    void PixelDistances(const cv::Mat &dualSpaceMatrix);
-    void InitializeDistancesIndices();
-    PixelCenterDistances distance_indices;
 
     intensities_vector & IntensityFromDistanceVector();
     intensities_vector intensities_at_distance;
@@ -67,8 +72,9 @@ public:
     int d_assigned_max{0};
     int xi_begin{0}, xi_end{0}, yi_begin{0}, yi_end{0};
 
-    cv::Mat I_;
-    cv::Mat dftMat_;
+    InputImageType* I_;
+    DFTImageType* dftMat_;
+    RealImageType* fftModulus_;
     const std::string inputName_;
     int num_threads_{1};
     /**Structure to save parameters, set at constructor. */
@@ -84,11 +90,6 @@ public:
 protected:
     void CheckEqualDimension();
     bool log_flag_{false};
-    index_pair_vector SimetricIndexPairsFromIndexPair(const index_pair &);
-    void SimetricIndices();
-    void ExtraIndexOddX();
-    void ExtraIndexOddY();
-    void ExtraIndexOddBoth();
 
     template<typename T = double>
     inline T Modulo (const T &a, const T& b){

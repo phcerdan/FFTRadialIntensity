@@ -108,10 +108,6 @@ TEST_F(img4x4_F, PixelDistances){
         ip_t{3,0}, ip_t{0,2}, ip_t{0,1}, ip_t{0,0}};
     EXPECT_EQ(d2, sim->distance_indices.ind[2]);
 
-    // // Corner indices are also in d3. /TODO
-    // SAXSsim::index_pair_vector d3{ip_t{3,3}, ip_t{3,0},
-    //     ip_t{0,3}, ip_t{0,0}};
-    // EXPECT_EQ(d3, s.distance_indices.ind[3]);
     int total_indices{0};
     for (auto &v : sim->distance_indices.ind){
         total_indices += v.size();

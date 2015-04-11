@@ -1,8 +1,10 @@
 SET( OpenCV_LIBS ${OpenCV_LIBS} PARENT_SCOPE )
+SET( ITK_LIBRARIES ${ITK_LIBRARIES} PARENT_SCOPE )
 SET( Boost_LIBRARIES ${Boost_LIBRARIES} PARENT_SCOPE )
 
-add_library(SAXSsim SHARED SAXSsim.cpp)
+add_library(SAXSsim STATIC SAXSsim.cpp)
 target_link_libraries(SAXSsim ${Boost_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(SAXSsim ${ITK_LIBRARIES} )
 
 add_executable(SAXSsim.exe main.cpp)
 # include_directories(${IPP_LIB_FOLDER})

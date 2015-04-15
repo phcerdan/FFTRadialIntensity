@@ -21,10 +21,6 @@ po::variables_map program_options(const int &argc, char** const & argv)
               "input image.")
         ("output,o", po::value<string>()->default_value(""),
               "output result to file.")
-        ("load_dist,l", po::value<string>()->default_value(""),
-              "load distances_indexes file.")
-        ("save_dist,s", po::value<string>()->default_value(""),
-              "save distances_indexes to file.")
         ;
 #ifdef ENABLE_PARALLEL
     generic.add_options()
@@ -54,27 +50,5 @@ po::variables_map program_options(const int &argc, char** const & argv)
         cout << "Output to default directory" << "\n";
     }
 
-    if (vm["load_dist"].as<string>()!="") {
-        cout << "PixelCenterDistances will be loaded from: " + vm["load_dist"].as<string>() << "\n";
-    } else {
-        cout << "No PixelCenterDistances will be loaded" << "\n";
-    }
-
-    if (vm["save_dist"].as<string>()!="") {
-        cout << "PixelCenterDistances will be saved to: " + vm["save_dist"].as<string>() << "\n";
-    } else {
-        cout << "PixelCenterDistances information will be saved to default directory" << "\n";
-    }
-    // string config_file = vm["config"].as<string>();
-    // ifstream ifs(config_file.c_str());
-    // if (!ifs)
-    // {
-    //     throw(runtime_error("Can not open config file: " + config_file + " ,use -c option"));
-    // }
-    // else
-    // {
-    //     store(parse_config_file(ifs, config_file_options), vm);
-    //     notify(vm);
-    // }
     return vm;
 }

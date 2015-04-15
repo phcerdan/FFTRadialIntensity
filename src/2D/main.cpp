@@ -8,14 +8,12 @@ int main(int argc, char* argv[]){
         auto option_map = program_options(argc, argv);
         string input = option_map["input_img"].as<string>();
         string output = option_map["output"].as<string>();
-        string save_dist = option_map["save_dist"].as<string>();
-        string load_dist = option_map["load_dist"].as<string>();
 
         #ifdef ENABLE_PARALLEL
         int num_threads = option_map["num_threads"].as<int>();
-        auto sim = SAXSsim(input, output, save_dist, load_dist, num_threads);
+        auto sim = SAXSsim(input, output, num_threads);
         #else
-        auto sim = SAXSsim(input, output, save_dist, load_dist);
+        auto sim = SAXSsim(input, output);
         #endif
     } catch(po_help_exception & e){
         return 1;

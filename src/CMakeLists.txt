@@ -19,6 +19,7 @@ message(status "** OpenCV Includes: ${OpenCV_INCLUDE_DIRS}")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_package(ITK REQUIRED)
 include_directories(${ITK_INCLUDE_DIRS})
+include(${ITK_USE_FILE})
 message(status "** ITK Libraries:  ${ITK_LIBRARIES}")
 message(status "** ITK Includes:  ${ITK_INCLUDE_DIRS}")
 

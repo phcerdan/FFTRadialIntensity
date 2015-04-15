@@ -19,8 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "opencv2/core/core.hpp"
 #include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkSCIFIOImageIO.h"
 #include <boost/filesystem.hpp>
 #include <string>
 #include <vector>
@@ -36,60 +34,62 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class SAXSsim
 {
 public:
-    // ITK Image Type
+    // ITK typedefs
     const static unsigned int  Dimension = 2;
     typedef unsigned int       InputPixelType;
     typedef double             RealPixelType;
     typedef itk::Image< InputPixelType, Dimension> InputImageType;
     typedef itk::Image< RealPixelType, Dimension>   RealImageType;
-    typedef itk::Image< std::complex<RealPixelType>, Dimension> DFTImageType;
+    typedef itk::Image< std::complex<RealPixelType>, Dimension> ComplexImageType;
+    typedef InputImageType::Pointer InputTypeP;
+    typedef RealImageType::Pointer RealTypeP;
+    typedef ComplexImageType::Pointer ComplexTypeP;
 
-    using intensities_vector =  std::vector<std::vector<double> > ;
+    using Intensities =  std::vector<std::vector<double> > ;
 
+public:
     SAXSsim() = default;
     SAXSsim(const std::string imgName, std::string outputPlotName = "",
-            std::string save_dist = "", std::string load_dist = "", int num_threads = 1);
+             int num_threads = 1);
     virtual ~SAXSsim ();
-    InputImageType* & Read(const std::string &imgName);
-    DFTImageType* & DFT();
-    void SavePlot(const std::string & fname);
-    void ShowPlot(const std::string & resultfile, double image_resolution);
-    void Show();
-    void SaveImage(cv::Mat & img, std::string & output);
+    InputTypeP  Read(const std::string &imgName);
+    ComplexTypeP  & FFT();
+    RealTypeP & FFTModulusSquare(const ComplexTypeP & D);
+    RealTypeP LogFFTModulusSquare(const RealTypeP & modulo);
+    void SaveIntensityProfile(const std::string & fname);
+    void GeneratePDF(const std::string & resultfile, double image_resolution);
+    void WriteFFTModulus( const std::string &outputFilename);
 
-    intensities_vector & IntensityFromDistanceVector();
-    intensities_vector intensities_at_distance;
-    std::vector<double>&  MeanIntensities();
-    std::vector<double> intensities_mean;
+    Intensities & ComputeRadialIntensity();
 #ifdef ENABLE_PARALLEL
-    intensities_vector & ParallelIntensityFromDistanceVector();
+    Intensities & ParallelComputeRadialIntensity();
 #endif
-    void InitializeSizeMembers(const cv::Mat & dftMat);
-    std::pair< int, int> mid_size;
-    std::pair< int, int> dft_size;
-    std::pair<bool, bool> even_flag;
-    std::pair<double,double> origin;
-    int d_assigned_max{0};
-    int xi_begin{0}, xi_end{0}, yi_begin{0}, yi_end{0};
+    Intensities intensities_;
+    std::vector<double>&  MeanIntensities();
+    std::vector<double> intensitiesMean_;
 
-    InputImageType* I_;
-    DFTImageType* dftMat_;
-    RealImageType* fftModulus_;
-    const std::string inputName_;
-    int num_threads_{1};
-    /**Structure to save parameters, set at constructor. */
-    struct Input{
+    InputTypeP inputImg_;
+    ComplexTypeP fftImg_;
+    RealTypeP fftModulusSquare_;
+
+    /**Structure to save input parameters, set at constructor. */
+    struct InputParameters{
         std::string img;
         std::string outPlot;
-        std::string saveIndices;
-        std::string loadIndices;
         int threads{1};
     };
-    Input input;
-    void logDFT(cv::Mat &D);
+    InputParameters input;
+
+    std::pair< int, int> midSize_;
+    std::pair< int, int> imgSize_;
+    std::pair<bool, bool> evenFlag_;
+    int fMax_{0};
 protected:
     void CheckEqualDimension();
-    bool log_flag_{false};
+    void InitializeSizeMembers();
+
+    const std::string inputName_;
+    int numThreads_{1};
 
     template<typename T = double>
     inline T Modulo (const T &a, const T& b){

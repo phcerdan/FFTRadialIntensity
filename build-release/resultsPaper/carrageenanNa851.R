@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
-filename = commandArgs(trailingOnly=TRUE)[1];
+# filename = commandArgs(trailingOnly=TRUE)[1];
+filename =  "./carrageenanNa851.plot"
 print(paste("filename :",filename));
 data = read.table(filename, col.names=c("d", "I"), row.names=NULL);
 # print(data[,"d"]);
@@ -14,7 +15,8 @@ Nx = as.numeric(unlist(strsplit(header[4], "="))[2]);
 Ny = as.numeric(unlist(strsplit(header[6], "="))[2]);
 print(paste("Nx =", Nx," ", "Ny =", Ny))
 
-nm_per_pixel = commandArgs(trailingOnly=TRUE)[2];
+# nm_per_pixel = commandArgs(trailingOnly=TRUE)[2];
+nm_per_pixel = 0.86;
 print(paste("nm_per_pixel =",nm_per_pixel));
 nm_per_pixel = as.numeric(nm_per_pixel);
 
@@ -35,11 +37,16 @@ library(tools)
 # if(q[1] == 0) I[1]=I[2]*10 # for correct I plot limits
 datf = data.frame(q,I);
 #ADD SAXS DATA
-fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/SAXS_1car200NaCl10A_1237_longMod.txt"
-dataS = read.table(fileSaxs, col.names=c("d", "I"), row.names=NULL, skip=1);
-qS = dataS[,"d"];
-IS = dataS[,"I"]*10^11;
-datafS = data.frame(qS,IS);
+fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1254_long.dat"
+dSaxsLong = read.table(fileSaxsLong, col.names=c("d", "I", "err"), row.names=NULL, skip=2);
+qSL = dSaxsLong[,"d"];
+ISL = dSaxsLong[,"I"]*10^11;
+dfSL = data.frame(qSL,ISL);
+fileSaxsShort = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1238_short.dat"
+dSaxsShort = read.table(fileSaxsShort, col.names=c("d", "I", "err"), row.names=NULL, skip=2);
+qSS = dSaxsShort[,"d"];
+ISS = dSaxsShort[,"I"]*10^11;
+dfSS = data.frame(qSS,ISS);
 
 library("ggplot2")
 library("scales")
@@ -48,9 +55,10 @@ filenameNoExtension = basename(file_path_sans_ext(filename));
 p <-ggplot()+
     theme_bw() +
     # remove minor ticks
-    theme(panel.grid.minor = element_blank()) + 
+    theme(panel.grid.minor = element_blank()) +
     geom_line(data = datf, aes(x=q, y=I)) +
-    geom_line(data = datafS, colour="blue", aes(x = qS, y = IS)) + 
+    geom_line(data = dfSL, colour="blue", aes(x = qSL, y = ISL)) +
+    geom_line(data = dfSS, colour="blue", aes(x = qSS, y = ISS)) +
     labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
                      labels = trans_format("log10", math_format(10^.x))

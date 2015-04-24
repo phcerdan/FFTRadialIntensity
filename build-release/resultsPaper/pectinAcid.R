@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
-filename = commandArgs(trailingOnly=TRUE)[1];
+# filename = commandArgs(trailingOnly=TRUE)[1];
+filename =  "./pectinAcid.plot"
 print(paste("filename :",filename));
 data = read.table(filename, col.names=c("d", "I"), row.names=NULL);
 # print(data[,"d"]);
@@ -14,7 +15,8 @@ Nx = as.numeric(unlist(strsplit(header[4], "="))[2]);
 Ny = as.numeric(unlist(strsplit(header[6], "="))[2]);
 print(paste("Nx =", Nx," ", "Ny =", Ny))
 
-nm_per_pixel = commandArgs(trailingOnly=TRUE)[2];
+# nm_per_pixel = commandArgs(trailingOnly=TRUE)[2];
+nm_per_pixel = 0.86;
 print(paste("nm_per_pixel =",nm_per_pixel));
 nm_per_pixel = as.numeric(nm_per_pixel);
 

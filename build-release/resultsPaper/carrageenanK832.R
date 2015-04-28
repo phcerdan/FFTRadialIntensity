@@ -38,16 +38,12 @@ library(tools)
 datf = data.frame(q,I);
 #ADD SAXS DATA
 fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_K/1car30KCl10A_1259_long.dat"
-dSaxsLong = read.table(fileSaxsLong, col.names=c("d", "I", "err"), row.names=NULL, skip=2);
-qSL = dSaxsLong[,"d"];
-ISL = dSaxsLong[,"I"]*10^11;
-dfSL = data.frame(qSL,ISL);
 fileSaxsShort = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_K/1car30KCl10A_1243_short.dat"
-dSaxsShort = read.table(fileSaxsShort, col.names=c("d", "I", "err"), row.names=NULL, skip=2);
-qSS = dSaxsShort[,"d"];
-ISS = dSaxsShort[,"I"]*10^11;
-dfSS = data.frame(qSS,ISS);
-
+# script.dir <- dirname(sys.frame(1)$ofile)
+# setwd(this.dir)
+source ('~/repository_local/tem-saxs/src/scripts/mergeSaxsData.R')
+dmerged = mergeSaxs(fileSaxsLong, fileSaxsShort, 5);
+dmerged$I = dmerged$I * 10^9;
 library("ggplot2")
 library("scales")
 motherdir = dirname(filename);
@@ -57,8 +53,7 @@ p <-ggplot()+
     # remove minor ticks
     theme(panel.grid.minor = element_blank()) +
     geom_line(data = datf, aes(x=q, y=I)) +
-    geom_line(data = dfSL, colour="blue", aes(x = qSL, y = ISL)) +
-    geom_line(data = dfSS, colour="blue", aes(x = qSS, y = ISS)) +
+    geom_line(data = dmerged, colour="blue", aes(x = dmerged$q, y = dmerged$I)) +
     labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
                      labels = trans_format("log10", math_format(10^.x))
@@ -71,7 +66,7 @@ p <-ggplot()+
     # slope = log(yend/y)/log(xend/x)
     # geom_segment( aes(x=10^-2, y=10^7, xend=10^-0, yend=10^5)) +  # slope=-1
     # geom_text(aes(x=10^-1.4, y=10^4.5 ), label='a = -1', angle = atan2(-1,1) * 180/pi )  +
-    geom_segment( aes(x=10^-2, y=10^14, xend=10^-1, yend=10^12))  # slope=-2
+    geom_segment( aes(x=10^-2, y=10^12, xend=10^-1, yend=10^10))  # slope=-2
     # geom_text(aes(x=10^-0.4, y=10^4 ), label='a = -2', angle = atan2(-2,1) * 180/pi ) +
     # geom_segment( aes(x=10^-1, y=10^6, xend=10^0, yend=10^3))  # slope=-3
     # geom_text(aes(x=10^-0.4, y=10^5 ), label='a = -3', angle = atan2(-3,1) * 180/pi )

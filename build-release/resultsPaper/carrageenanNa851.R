@@ -38,16 +38,12 @@ library(tools)
 datf = data.frame(q,I);
 #ADD SAXS DATA
 fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1254_long.dat"
-dSaxsLong = read.table(fileSaxsLong, col.names=c("d", "I", "err"), row.names=NULL, skip=2);
-qSL = dSaxsLong[,"d"];
-ISL = dSaxsLong[,"I"]*10^11;
-dfSL = data.frame(qSL,ISL);
 fileSaxsShort = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1238_short.dat"
-dSaxsShort = read.table(fileSaxsShort, col.names=c("d", "I", "err"), row.names=NULL, skip=2);
-qSS = dSaxsShort[,"d"];
-ISS = dSaxsShort[,"I"]*10^11;
-dfSS = data.frame(qSS,ISS);
-
+# script.dir <- dirname(sys.frame(1)$ofile)
+# setwd(this.dir)
+source ('~/repository_local/tem-saxs/src/scripts/mergeSaxsData.R')
+dmerged = mergeSaxs(fileSaxsLong, fileSaxsShort, 5);
+dmerged$I = dmerged$I * 5*10^9;
 library("ggplot2")
 library("scales")
 motherdir = dirname(filename);
@@ -57,8 +53,7 @@ p <-ggplot()+
     # remove minor ticks
     theme(panel.grid.minor = element_blank()) +
     geom_line(data = datf, aes(x=q, y=I)) +
-    geom_line(data = dfSL, colour="blue", aes(x = qSL, y = ISL)) +
-    geom_line(data = dfSS, colour="blue", aes(x = qSS, y = ISS)) +
+    geom_line(data = dmerged, colour="blue", aes(x = dmerged$q, y = dmerged$I)) +
     labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
                      labels = trans_format("log10", math_format(10^.x))

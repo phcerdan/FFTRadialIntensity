@@ -41,7 +41,7 @@ mergeSaxs <- function(fileSaxsLong, fileSaxsShort, removeIndexShort = 5) {
     names(dSextra) = c("q", "I");
     dSextra$I = log(dSextra$I) - Ilogdiff;
     dSextra$I = exp(dSextra$I);
-    # merge the data and remove the data from q low (because is noiser)
+    # merge the data
     dLtrim = subset(dfSL, subset=dfSL$qSL<dSextra$q[1]);
     names(dLtrim) = c("q", "I");
     dmerged = rbind(dLtrim, dSextra);

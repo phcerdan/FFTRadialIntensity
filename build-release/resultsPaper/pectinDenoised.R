@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # filename = commandArgs(trailingOnly=TRUE)[1];
-filename =  "./carrageenanK832.plot"
+filename =  "./pectinDenoised.plot"
 print(paste("filename :",filename));
 data = read.table(filename, col.names=c("d", "I"), row.names=NULL);
 # print(data[,"d"]);
@@ -38,28 +38,31 @@ library(tools)
 datf = data.frame(q,I);
 datf_trim = subset(datf, subset=datf$q > 10^-2.1);
 #ADD SAXS DATA
-fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_K/1car30KCl10A_1259_long.dat"
-fileSaxsShort = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_K/1car30KCl10A_1243_short.dat"
-# script.dir <- dirname(sys.frame(1)$ofile)
-# setwd(this.dir)
-source ('~/repository_local/tem-saxs/src/scripts/mergeSaxsData.R')
-dmerged = mergeSaxs(fileSaxsLong, fileSaxsShort, 5);
-dmerged$I = dmerged$I * 10^7.3;
+fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/SAXS_acid_gel_good.txt"
+dataS = read.table(fileSaxs, col.names=c("d", "I"), row.names=NULL, skip=0);
+fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/Acid_gel_Aus_data.txt"
+dataS = read.table(fileSaxs, col.names=c("d", "I"), row.names=NULL, skip=1);
+qS = dataS[,"d"];
+IS = dataS[,"I"];
+dmerged = data.frame(qS,IS);
+names(dmerged) = c("q", "I");
+dmerged$I = dmerged$I * 10^11.8;
 dmerged$q = dmerged$q * 10; # Change from A to nm
 # Chop large q data:
-dmerged = subset(dmerged, subset=dmerged$q < 10^+0.2);
+# dmerged = subset(dmerged, subset=dmerged$q < 10^+0.2);
 library("ggplot2")
 library("scales")
 motherdir = dirname(filename);
 filenameNoExtension = basename(file_path_sans_ext(filename));
 eps = 0.02;
-qbad = 10^-1.3;
+# qbad = 10^-0.92;
+qbad = 10^-1.33;
 dbad = subset(dmerged, subset= dmerged$q < qbad + eps * qbad & dmerged$q > qbad - eps * qbad);
 p <-ggplot()+
     theme_bw() +
     # remove minor ticks
     theme(panel.grid.minor = element_blank()) +
-    # geom_line(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I)) +
+    # geom_line(data = datf_trim, aes(x=q, y=I)) +
     geom_point(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I), size=1) +
     geom_line(data = dmerged, colour="blue", aes(x = dmerged$q, y = dmerged$I)) +
     labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +

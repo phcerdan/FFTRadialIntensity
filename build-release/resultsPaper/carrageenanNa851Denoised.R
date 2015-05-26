@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # filename = commandArgs(trailingOnly=TRUE)[1];
-filename =  "./carrageenanK832.plot"
+filename =  "./carrageenanNa851Denoised.plot"
 print(paste("filename :",filename));
 data = read.table(filename, col.names=c("d", "I"), row.names=NULL);
 # print(data[,"d"]);
@@ -38,13 +38,11 @@ library(tools)
 datf = data.frame(q,I);
 datf_trim = subset(datf, subset=datf$q > 10^-2.1);
 #ADD SAXS DATA
-fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_K/1car30KCl10A_1259_long.dat"
-fileSaxsShort = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_K/1car30KCl10A_1243_short.dat"
-# script.dir <- dirname(sys.frame(1)$ofile)
-# setwd(this.dir)
+fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1254_long.dat"
+fileSaxsShort = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1238_short.dat"
 source ('~/repository_local/tem-saxs/src/scripts/mergeSaxsData.R')
 dmerged = mergeSaxs(fileSaxsLong, fileSaxsShort, 5);
-dmerged$I = dmerged$I * 10^7.3;
+dmerged$I = dmerged$I * 10^7.7;
 dmerged$q = dmerged$q * 10; # Change from A to nm
 # Chop large q data:
 dmerged = subset(dmerged, subset=dmerged$q < 10^+0.2);
@@ -74,12 +72,10 @@ p <-ggplot()+
     # slope = log(yend/y)/log(xend/x)
     # geom_segment( aes(x=10^-2, y=10^7, xend=10^-0, yend=10^5)) +  # slope=-1
     # geom_text(aes(x=10^-1.4, y=10^4.5 ), label='a = -1', angle = atan2(-1,1) * 180/pi )  +
-# p  <- p + geom_segment( aes(x=10^-2, y=10^12, xend=10^-1, yend=10^10))  # slope=-2
+    # geom_segment( aes(x=10^-2, y=10^14, xend=10^-1, yend=10^12))  # slope=-2
     # geom_text(aes(x=10^-0.4, y=10^4 ), label='a = -2', angle = atan2(-2,1) * 180/pi ) +
     # geom_segment( aes(x=10^-1, y=10^6, xend=10^0, yend=10^3))  # slope=-3
     # geom_text(aes(x=10^-0.4, y=10^5 ), label='a = -3', angle = atan2(-3,1) * 180/pi )
-## Region of interest ##
-# p + geom_segment(aes(x = dbad$q, y = 0, xend = dbad$q, yend = dbad$I), colour="#CC6666");
 p <- p +
     geom_vline(aes(linetype="CutOff", xintercept=dbad$q), data = dbad,  colour="#CC6666", show_guide=F) +
     geom_rect(aes(xmin = dbad$q, xmax = Inf, ymin = 0, ymax = Inf), fill="#CC6666", alpha=0.15)

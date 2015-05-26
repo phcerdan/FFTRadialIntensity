@@ -8,14 +8,22 @@
 # dmerged = mergeSaxs(long, short, 5 );
 # you can use write.table(dmerged, file=./mergedResult.txt) if you want to save the data.
 
-mergeSaxs <- function(fileSaxsLong, fileSaxsShort, removeIndexShort = 5) {
+mergeSaxs <- function(fileSaxsLong, fileSaxsShort, removeIndexShort = 5, skipLong = 2, skipShort = 2, numcolsLong = 3, numcolsShort = 3) {
     # fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1254_long.dat"
-    dSaxsLong = read.table(fileSaxsLong, col.names=c("d", "I", "err"), row.names=NULL, skip=2);
+    if (numcolsLong==3) {
+        dSaxsLong = read.table(fileSaxsLong, col.names=c("d", "I", "err"), row.names=NULL, skip=skipLong);
+    } else {
+        dSaxsLong = read.table(fileSaxsLong, col.names=c("d", "I"), row.names=NULL, skip=skipLong);
+    }
     qSL = dSaxsLong[,"d"];
     ISL = dSaxsLong[,"I"];
     dfSL = data.frame(qSL,ISL);
     # fileSaxsShort = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1238_short.dat"
-    dSaxsShort = read.table(fileSaxsShort, col.names=c("d", "I", "err"), row.names=NULL, skip=2);
+    if (numcolsShort==3) {
+        dSaxsShort = read.table(fileSaxsShort, col.names=c("d", "I", "err"), row.names=NULL, skip=skipShort);
+    } else {
+        dSaxsShort = read.table(fileSaxsShort, col.names=c("d", "I"), row.names=NULL, skip=skipShort);
+    }
     qSS = dSaxsShort[,"d"];
     ISS = dSaxsShort[,"I"];
     dfSS = data.frame(qSS,ISS);

@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # filename = commandArgs(trailingOnly=TRUE)[1];
-filename =  "./carrageenanK832.plot"
+filename =  "./carrageenanK832Denoised.plot"
 print(paste("filename :",filename));
 data = read.table(filename, col.names=c("d", "I"), row.names=NULL);
 # print(data[,"d"]);

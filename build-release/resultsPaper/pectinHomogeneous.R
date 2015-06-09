@@ -38,10 +38,10 @@ library(tools)
 datf = data.frame(q,I);
 datf_trim = subset(datf, subset=datf$q > 10^-2.1);
 #ADD SAXS DATA
-fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/SAXS_acid_gel_good.txt"
-dataS = read.table(fileSaxs, col.names=c("d", "I"), row.names=NULL, skip=0);
-# fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/Acid_gel_Aus_data.txt"
-# dataS = read.table(fileSaxs, col.names=c("d", "I"), row.names=NULL, skip=1);
+# fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/SAXS_acid_gel_good.txt"
+# dataS = read.table(fileSaxs, col.names=c("d", "I"), row.names=NULL, skip=0);
+fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/Acid_gel_Aus_data.txt"
+dataS = read.table(fileSaxs, col.names=c("d", "I"), row.names=NULL, skip=1);
 qS = dataS[,"d"];
 IS = dataS[,"I"];
 dmerged = data.frame(qS,IS);
@@ -55,8 +55,8 @@ library("scales")
 motherdir = dirname(filename);
 filenameNoExtension = basename(file_path_sans_ext(filename));
 eps = 0.02;
-qbad = 10^-0.92;
-# qbad = 10^-1.33;
+# qbad = 10^-0.92;
+qbad = 10^-1.33;
 dbad = subset(dmerged, subset= dmerged$q < qbad + eps * qbad & dmerged$q > qbad - eps * qbad);
 p <-ggplot()+
     theme_bw() +

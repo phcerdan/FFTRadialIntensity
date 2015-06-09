@@ -41,8 +41,14 @@ data2 = read.table(filename, col.names=c("d", "I"), row.names=NULL);
 q2 = data2[,"d"] * df / Nmin;
 I2 = data2[,"I"];
 datf2 = data.frame(q2,I2);
-datf2_trim = subset(datf2, subset=datf$q > 10^-2.1);
-
+datf2_trim = subset(datf2, subset=datf2$q > 10^-2.1);
+# Original Pectin Homogeneous:
+filenameO =  "./pectinHomogeneous.plot"
+dataO = read.table(filenameO, col.names=c("d", "I"), row.names=NULL);
+qO = dataO[,"d"] * df / Nmin;
+IO = dataO[,"I"];
+datfO = data.frame(qO,IO);
+datfO_trim = subset(datfO, subset=datfO$q > 10^-2.1);
 # if(q[1] == 0) I[1]=I[2]*10 # for correct I plot limits
 #ADD SAXS DATA
 # fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/SAXS_acid_gel_good.txt"
@@ -51,9 +57,12 @@ fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/Acid
 dataS = read.table(fileSaxs, col.names=c("d", "I"), row.names=NULL, skip=1);
 qS = dataS[,"d"];
 IS = dataS[,"I"];
+#Remove first value of Aus Data
+qS = tail(qS,-1);
+IS = tail(IS,-1);
 dmerged = data.frame(qS,IS);
 names(dmerged) = c("q", "I");
-dmerged$I = dmerged$I * 10^13;
+dmerged$I = dmerged$I * 10^12.7;
 dmerged$q = dmerged$q * 10; # Change from A to nm
 # Chop large q data:
 # dmerged = subset(dmerged, subset=dmerged$q < 10^+0.2);
@@ -61,17 +70,18 @@ library("ggplot2")
 library("scales")
 motherdir = dirname(filename);
 filenameNoExtension = basename(file_path_sans_ext(filename));
-eps = 0.02;
+eps = 0.015;
 # qbad = 10^-0.92;
-# qbad = 10^-1.33;
+qbad = 10^-1.33;
 dbad = subset(dmerged, subset= dmerged$q < qbad + eps * qbad & dmerged$q > qbad - eps * qbad);
 p <-ggplot()+
     theme_bw() +
     # remove minor ticks
     theme(panel.grid.minor = element_blank()) +
     # geom_line(data = datf_trim, aes(x=q, y=I)) +
-    geom_point(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I), size=1) +
-    geom_line(data = datf2_trim, colour="green", aes(x=datf2_trim$q, y=datf2_trim$I*0.9), size=1) +
+    # geom_point(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I), size=1) +
+    geom_point(data = datf2_trim, aes(x=datf2_trim$q, y=datf2_trim$I*0.9), size=1) +
+    geom_point(data = datfO_trim, aes(x=datfO_trim$q, y=datfO_trim$I*0.9), size=1) +
     geom_line(data = dmerged, colour="blue", aes(x = dmerged$q, y = dmerged$I)) +
     labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),

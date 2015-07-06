@@ -29,7 +29,7 @@ using serialize_output_type = boost::archive::text_oarchive;
 using namespace cv;
 using namespace itk;
 using namespace std;
-SAXSsim::SAXSsim(const string inputName, string outputName, int numThreads) :
+SAXSsim::SAXSsim(const string inputName, string outputName, int numThreads, bool saveToFile) :
     inputName_{inputName}, numThreads_{numThreads}
 {
     input.img = inputName;
@@ -58,14 +58,15 @@ SAXSsim::SAXSsim(const string inputName, string outputName, int numThreads) :
     MeanIntensities();
 
     // Save results. Get the filename of input with no extension
-    boost::filesystem::path opath{inputName};
-    auto path_no_extension    = opath.stem();
-    auto input_no_extension = path_no_extension.generic_string();
-    if (outputName == "")
-        outputName = "./results/" + input_no_extension + ".plot";
-    input.outPlot = outputName;
-    SaveIntensityProfile(outputName);
-
+    if (saveToFile){
+        boost::filesystem::path opath{inputName};
+        auto path_no_extension    = opath.stem();
+        auto input_no_extension = path_no_extension.generic_string();
+        if (outputName == "")
+            outputName = "./results/" + input_no_extension + ".plot";
+        input.outPlot = outputName;
+        SaveIntensityProfile(outputName);
+    }
     // Display execution time
     end = chrono::system_clock::now();
     chrono::duration<double, ratio<60>> elapsed_time = end-start;

@@ -1,0 +1,7 @@
+include_directories(SYSTEM ${GMOCK_INCLUDE_DIR} ${GTEST_INCLUDE_DIR})
+include_directories("..")
+file(COPY "../../fixtures" DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
+add_executable(singleImagesFromMontage.exe singleImagesFromMontage.cpp)
+set_source_files_properties (singleImagesFromMontage.exe PROPERTIES COMPILE_FLAGS "-Wno-sign-compare")
+target_link_libraries(singleImagesFromMontage.exe SAXSsim)
+target_link_libraries(singleImagesFromMontage.exe ${GMOCK_LIBRARY_MAIN} ${GTEST_LIBRARY_MAIN} ${CMAKE_THREAD_LIBS_INIT} )

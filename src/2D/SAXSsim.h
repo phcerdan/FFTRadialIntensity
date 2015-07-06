@@ -50,7 +50,7 @@ public:
 public:
     SAXSsim() = default;
     SAXSsim(const std::string imgName, std::string outputPlotName = "",
-             int num_threads = 1);
+             int num_threads = 1, bool saveToFile=1);
     virtual ~SAXSsim ();
     InputTypeP  Read(const std::string &imgName);
     ComplexTypeP  & FFT();

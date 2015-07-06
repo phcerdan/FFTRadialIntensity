@@ -44,6 +44,7 @@ IF(ENABLE_PARALLEL)
 ENDIF(ENABLE_PARALLEL)
 
 add_subdirectory(2D)
+add_subdirectory(QT)
 set(ENABLE_PARALLEL "ON" CACHE BOOL "Enable to use openMP")
 # TEST
 ### Google TEST AND MOCK

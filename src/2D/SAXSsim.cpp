@@ -141,22 +141,29 @@ void SAXSsim::SaveIntensityProfile(const string & fname){
     }
     output_file.close();
 }
-void SAXSsim::WriteFFTModulus( const string &outputFilename){
-
+SAXSsim::OutputTypeP& SAXSsim::RescaleFFTModulus(
+        const SAXSsim::ComplexTypeP& complexFFT)
+{
     typedef itk::ComplexToModulusImageFilter<ComplexImageType, RealImageType> FftModulusType;
     auto modulusFilter = FftModulusType::New();
-    modulusFilter->SetInput(fftImg_);
-    typedef unsigned short                           OutputPixelType;
-    typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
+    modulusFilter->SetInput(complexFFT);
     typedef itk::RescaleIntensityImageFilter<RealImageType, OutputImageType > RescaleFilter;
     auto rescaleFilter = RescaleFilter::New();
     rescaleFilter->SetInput(modulusFilter->GetOutput());
     rescaleFilter->SetOutputMinimum( itk::NumericTraits< OutputPixelType >::min() );
     rescaleFilter->SetOutputMaximum( itk::NumericTraits< OutputPixelType >::max() );
+    rescaleFilter->Update();
+    return fftRescaledModulus_ = rescaleFilter->GetOutput();
+
+}
+
+void SAXSsim::WriteFFTModulus( const string &outputFilename)
+{
+    OutputImageType::Pointer rescaledFFTModulus = this->RescaleFFTModulus(fftImg_);
     typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
     auto writer = WriterType::New();
     writer->SetFileName(outputFilename);
-    writer->SetInput(rescaleFilter->GetOutput());
+    writer->SetInput(rescaledFFTModulus);
     writer->Update();
 }
 void SAXSsim::GeneratePDF(const string & resultfile, double image_resolution){

@@ -12,39 +12,78 @@
 #include <QVector>
 using namespace std;
 
-template<typename TInputImage>
-itk::VTKImageExport<TInputImage>::Pointer ITKtoVTKConnector(const TInputImage* itkImg)
-{
-    typedef itk::VTKImageExport<TInputImage> ConnectorType;
-    itk::VTKImageExport<TInputImage>::Pointer connector =
-        ConnectorType::New();
-    connector->SetInput(itkImg);
-    return connector;
-}
+// template<typename TInputImage>
+// typename itk::VTKImageExport<TInputImage>::Pointer ITKtoVTKConnector(const TInputImage* itkImg)
+// {
+//     typedef itk::VTKImageExport<TInputImage> ConnectorType;
+//     typename itk::VTKImageExport<TInputImage>::Pointer connector =
+//         ConnectorType::New();
+//     connector->SetInput(itkImg);
+//     return connector;
+// }
 
 void MainWindow::createNewDialog()
 {
 
-    newDialog = new QDialog;
-    newDialog->setWindowTitle("New FFT From Image");
-    bool ok;
+    newDialog = new NewDialog(this);
+    newDialog->show();
+    connect(newDialog, &NewDialog::newSimFromDialog, this, &MainWindow::newSim);
+}
+void MainWindow::newSim(string imgName, string outputPlotName, int num_threads, bool saveToFile)
+{
 
-    QString text = QInputDialog::getText(  this,  tr("Input 2DImage"),
-            tr("Select an Image"),
-            QLineEdit::Normal, "", &ok );
-    if( ok && !text.isEmpty() ){
-        inputImg_ = text;
-    }
-    QPushButton *button = new QPushButton("Create", this);
-    connect(button, SIGNAL(clicked()), newDialog, SLOT(this->newSim(inputImg_, outputPlotFile_, num_threads_, saveToFile));
+    simVector.push_back(
+            make_shared<SAXSsim>(imgName, outputPlotName,
+                num_threads, saveToFile)
+            );
+    renderInputTypeImage();
+    renderOutputTypeImage();
 
 }
-void MainWindow::newSim(QString imgName, QString outputPlotName, int num_threads, bool saveToFile)
+void MainWindow::renderInputTypeImage()
 {
-    inputImg_       = imgName;
-    outputPlotFile_ = outputPlotName;
-    num_threads_    = num_threads;
-    sim = SAXSsim(imgName.toStdString(), outputPlotName.toStdString(), num_threads, saveToFile);
+
+    auto &sim = simVector.back();
+    auto connector   = ConnectorInputType::New();
+    connector->SetInput(sim->inputImg_);
+    connector->Update();
+    auto actor = vtkSmartPointer<vtkImageActor>::New();
+    actor->GetMapper()->SetInputData(connector->GetOutput());
+    auto renderer = vtkSmartPointer<vtkRenderer>::New();
+    renderer->AddActor(actor);
+    renderer->ResetCamera();
+    renWinVector.push_back(vtkSmartPointer<vtkRenderWindow>::New());
+    auto &renWin = renWinVector.back();
+    renWin->AddRenderer(renderer);
+
+    renWin->SetInteractor(ui->qvtkWidget->GetInteractor());
+    ui->qvtkWidget->SetRenderWindow(renderer->GetRenderWindow());
+    auto style = vtkSmartPointer<vtkInteractorStyle>::New();
+    renWin->GetInteractor()->SetInteractorStyle(style);
+    renderer->Render();
+
+}
+
+void MainWindow::renderOutputTypeImage()
+{
+    auto &sim = simVector.back();
+    auto connector   = ConnectorOutputType::New();
+    connector->SetInput(sim->RescaleFFTModulus(sim->fftImg_));
+    connector->Update();
+    auto actor = vtkSmartPointer<vtkImageActor>::New();
+    actor->GetMapper()->SetInputData(connector->GetOutput());
+    auto renderer = vtkSmartPointer<vtkRenderer>::New();
+    renderer->AddActor(actor);
+    renderer->ResetCamera();
+    renWinVector.push_back(vtkSmartPointer<vtkRenderWindow>::New());
+    auto &renWin = renWinVector.back();
+    renWin->AddRenderer(renderer);
+
+    renWin->SetInteractor(ui->qvtkWidget_2->GetInteractor());
+    ui->qvtkWidget_2->SetRenderWindow(renderer->GetRenderWindow());
+    auto style = vtkSmartPointer<vtkInteractorStyle>::New();
+    renWin->GetInteractor()->SetInteractorStyle(style);
+    renderer->Render();
 
 }
 MainWindow::MainWindow(QWidget *parent) :
@@ -66,9 +105,9 @@ MainWindow::~MainWindow()
 void MainWindow::createActions()
 {
     newSimAct = new QAction(QIcon(":/resources/open.png"), tr("&Create a new FFT From Image."), this);
-    openNodAndEdgAct->setShortcuts(QKeySequence::Open);
-    openNodAndEdgAct->setStatusTip(tr("Create a new FFT From Image"));
-    connect(openNodAndEdgAct, SIGNAL(triggered()), this, SLOT(createNewDialog());
+    newSimAct->setShortcuts(QKeySequence::Open);
+    newSimAct->setStatusTip(tr("Create a new FFT From Image"));
+    connect(newSimAct, SIGNAL(triggered()), this, SLOT(createNewDialog()));
 
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);

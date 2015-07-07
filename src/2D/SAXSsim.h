@@ -44,6 +44,10 @@ public:
     typedef InputImageType::Pointer InputTypeP;
     typedef RealImageType::Pointer RealTypeP;
     typedef ComplexImageType::Pointer ComplexTypeP;
+    // For Output(show and write) purposes of FFT.
+    typedef unsigned short                           OutputPixelType;
+    typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
+    typedef OutputImageType::Pointer OutputTypeP;
 
     using Intensities =  std::vector<std::vector<double> > ;
 
@@ -58,6 +62,8 @@ public:
     RealTypeP LogFFTModulusSquare(const RealTypeP & modulo);
     void SaveIntensityProfile(const std::string & fname);
     void GeneratePDF(const std::string & resultfile, double image_resolution);
+    OutputTypeP& RescaleFFTModulus(
+        const ComplexTypeP& inputComplexFFT);
     void WriteFFTModulus( const std::string &outputFilename);
 
     Intensities & ComputeRadialIntensity();
@@ -71,6 +77,7 @@ public:
     InputTypeP inputImg_;
     ComplexTypeP fftImg_;
     RealTypeP fftModulusSquare_;
+    OutputTypeP fftRescaledModulus_;
 
     /**Structure to save input parameters, set at constructor. */
     struct InputParameters{

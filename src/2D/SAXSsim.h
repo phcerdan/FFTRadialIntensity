@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SAXSsim_H_
 #define SAXSsim_H_
 
-#include "opencv2/core/core.hpp"
 #include "itkImage.h"
 #include <boost/filesystem.hpp>
 #include <string>

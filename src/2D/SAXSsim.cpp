@@ -11,8 +11,6 @@
 #include <itkLogImageFilter.h>
 #include <itkCastImageFilter.h>
 #include <QuickView.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
@@ -26,7 +24,6 @@ using serialize_output_type = boost::archive::text_oarchive;
 // #include <cereal/archives/json.hpp>
 // using cereal_input_type = cereal::JSONInputArchive;
 // using cereal_output_type = cereal::JSONOutputArchive;
-using namespace cv;
 using namespace itk;
 using namespace std;
 SAXSsim::SAXSsim(const string inputName, string outputName, int numThreads, bool saveToFile) :

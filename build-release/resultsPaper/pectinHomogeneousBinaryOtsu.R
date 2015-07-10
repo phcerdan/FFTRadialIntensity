@@ -80,7 +80,7 @@ p <-ggplot()+
     theme(panel.grid.minor = element_blank()) +
     # geom_line(data = datf_trim, aes(x=q, y=I)) +
     # geom_point(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I), size=1) +
-    geom_point(data = datf2_trim, aes(x=datf2_trim$q, y=datf2_trim$I*0.9), size=1) +
+    geom_point(data = datf2_trim, aes(x=datf2_trim$q, y=datf2_trim$I*0.9), size=1, colour="red") +
     geom_point(data = datfO_trim, aes(x=datfO_trim$q, y=datfO_trim$I*0.9), size=1) +
     geom_line(data = dmerged, colour="blue", aes(x = dmerged$q, y = dmerged$I)) +
     labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +

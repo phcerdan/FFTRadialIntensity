@@ -6,20 +6,81 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>784</width>
-    <height>420</height>
+    <width>660</width>
+    <height>626</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QVTKWidget" name="qvtkWidget"/>
-    </item>
-    <item>
-     <widget class="QVTKWidget" name="qvtkWidget_2"/>
+   <layout class="QGridLayout" name="gridLayout_4">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitter_2">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="QVTKWidget" name="qvtkWidget"/>
+       <widget class="QVTKWidget" name="qvtkWidget_2"/>
+      </widget>
+      <widget class="QScrollArea" name="scrollArea">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>70</height>
+        </size>
+       </property>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>640</width>
+          <height>80</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="topMargin">
+          <number>1</number>
+         </property>
+         <property name="rightMargin">
+          <number>1</number>
+         </property>
+         <property name="bottomMargin">
+          <number>1</number>
+         </property>
+         <property name="horizontalSpacing">
+          <number>1</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QPlainTextEdit" name="textEdit"/>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -28,7 +89,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>784</width>
+     <width>660</width>
      <height>25</height>
     </rect>
    </property>
@@ -38,13 +99,24 @@
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>true</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>false</bool>
+    <bool>true</bool>
    </attribute>
   </widget>
+  <action name="actionSim1">
+   <property name="text">
+    <string>Sim1</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -53,6 +125,8 @@
    <header>QVTKWidget.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../repository_local/biopolymers-TEM-SAXS-comparisson/FFT-from-image-compute-radial-intensity/src/QT/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

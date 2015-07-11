@@ -34,19 +34,19 @@ class SAXSsim
 {
 public:
     // ITK typedefs
-    const static unsigned int  Dimension = 2;
-    typedef unsigned int       InputPixelType;
-    typedef double             RealPixelType;
-    typedef itk::Image< InputPixelType, Dimension> InputImageType;
-    typedef itk::Image< RealPixelType, Dimension>   RealImageType;
+    const static unsigned int Dimension = 2;
+    typedef unsigned int                                        InputPixelType;
+    typedef double                                              RealPixelType;
+    typedef itk::Image< InputPixelType, Dimension>              InputImageType;
+    typedef itk::Image< RealPixelType, Dimension>               RealImageType;
     typedef itk::Image< std::complex<RealPixelType>, Dimension> ComplexImageType;
-    typedef InputImageType::Pointer InputTypeP;
-    typedef RealImageType::Pointer RealTypeP;
-    typedef ComplexImageType::Pointer ComplexTypeP;
+    typedef InputImageType::Pointer                             InputTypeP;
+    typedef RealImageType::Pointer                              RealTypeP;
+    typedef ComplexImageType::Pointer                           ComplexTypeP;
     // For Output(show and write) purposes of FFT.
-    typedef unsigned short                           OutputPixelType;
-    typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-    typedef OutputImageType::Pointer OutputTypeP;
+    typedef unsigned short                                      OutputPixelType;
+    typedef itk::Image< OutputPixelType, Dimension >            OutputImageType;
+    typedef OutputImageType::Pointer                            OutputTypeP;
 
     using Intensities =  std::vector<std::vector<double> > ;
 
@@ -55,15 +55,19 @@ public:
     SAXSsim(const std::string imgName, std::string outputPlotName = "",
              int num_threads = 1, bool saveToFile=1);
     virtual ~SAXSsim ();
-    InputTypeP  Read(const std::string &imgName);
+    void Initialize();
+    void SetInputParameters(std::string inputName, std::string outputName, int numThreads, bool saveToFile);
+// #ifdef ENABLE_QT
+//     void SetQDebugStream(Q_DebugStream* input);
+//     Q_DebugStream* m_debugStream;
+// #endif
+    InputTypeP  Read();
     ComplexTypeP  & FFT();
-    RealTypeP & FFTModulusSquare(const ComplexTypeP & D);
-    RealTypeP LogFFTModulusSquare(const RealTypeP & modulo);
+    RealTypeP & FFTModulusSquare();
     void SaveIntensityProfile(const std::string & fname);
     void GeneratePDF(const std::string & resultfile, double image_resolution);
-    OutputTypeP& RescaleFFTModulus(
-        const ComplexTypeP& inputComplexFFT);
-    void WriteFFTModulus( const std::string &outputFilename);
+    void WriteFFT( const RealTypeP & inputFFT,  const std::string &outputFilename);
+    OutputTypeP RescaleFFT(const RealTypeP& inputFFT);
 
     Intensities & ComputeRadialIntensity();
 #ifdef ENABLE_PARALLEL
@@ -76,15 +80,15 @@ public:
     InputTypeP inputImg_;
     ComplexTypeP fftImg_;
     RealTypeP fftModulusSquare_;
-    OutputTypeP fftRescaledModulus_;
-
-    /**Structure to save input parameters, set at constructor. */
-    struct InputParameters{
-        std::string img;
-        std::string outPlot;
-        int threads{1};
-    };
-    InputParameters input;
+    //For visualization only:
+    RealTypeP WindowingFFT(
+        const RealTypeP& modulusFFT,
+        RealPixelType maxInputValue,
+        RealPixelType maxOuputValue = 255 );
+    RealTypeP &LogFFTModulusSquare(const RealTypeP & modulo);
+    void ScaleForVisualization();
+    std::vector<double>  intensitiesVisualization_;
+    RealTypeP fftVisualization_;
 
     std::pair< int, int> midSize_;
     std::pair< int, int> imgSize_;
@@ -94,8 +98,10 @@ protected:
     void CheckEqualDimension();
     void InitializeSizeMembers();
 
-    const std::string inputName_;
+    std::string inputName_;
+    std::string outputName_;
     int numThreads_{1};
+    bool saveToFile_{ true };
 
     template<typename T = double>
     inline T Modulo (const T &a, const T& b){

@@ -63,6 +63,7 @@ qO = dataO[,"d"] * df / Nmin;
 IO = dataO[,"I"];
 datfO = data.frame(qO,IO);
 datfO_trim = subset(datfO);
+datfO_trim = datfO_trim[-1,]
 # datfO_trim = subset(datfO, subset=datfO$q > 10^-2.1);
 # if(q[1] == 0) I[1]=I[2]*10 # for correct I plot limits
 #ADD SAXS DATA
@@ -94,21 +95,20 @@ p <-ggplot()+
     theme(panel.grid.minor = element_blank()) +
     # geom_ribbon(data = dataMean, aes(x=dataMean$q, y = dataMean$I , ymin=dataError$min, ymax= dataError$max), colour="gray87", fill="gray88", alpha=0.9 ) + # position=position_dodge(0.2))+
     # geom_errorbar(data = dataMean, aes(x=dataMean$q, y = dataMean$I , ymin=dataSd$min, ymax= dataSd$max), alpha=0.9, colour="gray78", width=0.02 ) + # position=position_dodge(0.2))+
-    geom_errorbar(data = dataMean, aes(x=dataMean$q, y = dataMean$I , ymin=dataMeanDeviation$min, ymax= dataMeanDeviation$max, shape="1 SD"),show_guide = TRUE, alpha=0.3, colour="gray20", width=0.02 ) + # position=position_dodge(0.2))+
+    geom_errorbar(data = dataMean, aes(x=dataMean$q, y = dataMean$I , ymin=dataMeanDeviation$min, ymax= dataMeanDeviation$max, shape="2 SD"),show_guide = TRUE, alpha=0.3, colour="gray20", width=0.02 ) + # position=position_dodge(0.2))+
     # geom_point(data = alldata, aes(x=alldata$q, y=alldata$I, colour=n), size=0.1) +
     geom_line(data = alldata, aes(x=alldata$q, y=alldata$I, group=alldata$n, colour=n), alpha=0.2) +
-    geom_line(data = dataMean, aes(x=dataMean$q, y = dataMean$I, fill="red" ), size=0.8, colour = "red") +
+    geom_line(data = dataMean, aes(x=dataMean$q, y = dataMean$I), size=0.8, colour = "red") +
     scale_colour_continuous(name="Image:") +
     scale_shape_discrete(name="Error-Bars") +
-    scale_fill_discrete(name="Mean", guide="red") +
     guides(linetype=FALSE) +
     # geom_line(data = datf, aes(x=q, y=I)) +
     # geom_point(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I, colour="red"), size=1) +
     # geom_point(data = datf2_trim, aes(x=datf2_trim$q, y=datf2_trim$I*0.9), size=1) +
-    # geom_point(data = datfO_trim, aes(x=datfO_trim$q, y=datfO_trim$I*0.04), size=1) +
+    geom_point(data = datfO_trim, aes(x=datfO_trim$q, y=datfO_trim$I*0.04), size=1) +
     # geom_point(data = datfO, aes(x=datfO$q, y=datfO$I*0.9), size=1) +
     # geom_line(data = dmerged, colour="blue", aes(x = dmerged$q, y = dmerged$I)) +
-    labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +
+    labs(title="Single Image Analysis: Pectin Acid", x=" q $nm^{-1}$", y="I") +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),
                      labels = trans_format("log10", math_format(10^.x))
                      ) +

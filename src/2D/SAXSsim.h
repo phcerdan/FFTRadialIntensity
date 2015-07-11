@@ -29,9 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef ENABLE_PARALLEL
 #include <omp.h>
 #endif
-#ifdef ENABLE_QT
-#include "../QT/Q_DebugStream.h"
-#endif
 
 class SAXSsim
 {
@@ -60,10 +57,10 @@ public:
     virtual ~SAXSsim ();
     void Initialize();
     void SetInputParameters(std::string inputName, std::string outputName, int numThreads, bool saveToFile);
-#ifdef ENABLE_QT
-    void SetQDebugStream(Q_DebugStream* input);
-    Q_DebugStream* m_debugStream;
-#endif
+// #ifdef ENABLE_QT
+//     void SetQDebugStream(Q_DebugStream* input);
+//     Q_DebugStream* m_debugStream;
+// #endif
     InputTypeP  Read();
     ComplexTypeP  & FFT();
     RealTypeP & FFTModulusSquare();

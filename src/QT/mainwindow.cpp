@@ -21,26 +21,71 @@ void MainWindow::createNewDialog()
     newDialog->exec();
     delete newDialog;
 }
+void MainWindow::workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim)
+{
+    // shared_ptr<SAXSsim> newsim = inputSim;
+    simVector.push_back(inputSim);
+    ui->qvtkWidget->show();
+    ui->qvtkWidget_2->show();
+    std::cout << "workSimHasFinished" << std::endl;
+    simVector.back()->ScaleForVisualization();
+    std::cout << "after" << std::endl;
+    renderInputTypeImage();
+    renderFFTWindowed();
+}
+// void MainWindow::receiveQString(QString in)
+// {
+//
+// }
 void MainWindow::newSim(string imgName, string outputPlotName, int num_threads, bool saveToFile)
 {
     // newDialog->hide();
+    // qRegisterMetaType<QTextBlock>();
+    // qRegisterMetaType<QTextCursor>();
+    // m_debugStream = new Q_DebugStream(std::cout, ui->textEdit); //Redirect Console output to QTextEdit
+    std::cout << "newSim called" << std::endl;
+    thread_    = new QThread;
+    workerSim_ = new WorkerSim;
+    qRegisterMetaType<std::string>();
+    qRegisterMetaType<std::shared_ptr<SAXSsim> >();;
+    connect(this, &MainWindow::runWorkerSim,
+            workerSim_, &WorkerSim::runSim);
+    connect(this, &MainWindow::runWorkerSimWithMessenger,
+            workerSim_, &WorkerSim::runSimWithMessenger);
 
-    m_debugStream = new Q_DebugStream(std::cout, ui->textEdit); //Redirect Console output to QTextEdit
-    try {
-        simVector.push_back(make_shared<SAXSsim>());
-        auto& sim = simVector.back();
-        sim->SetInputParameters(imgName, outputPlotName, num_threads, saveToFile);
-        sim->SetQDebugStream(m_debugStream);
-        sim->Initialize();
+    connect(workerSim_, &WorkerSim::onFinishRun,
+            this,&MainWindow::workerSimHasFinished, Qt::BlockingQueuedConnection) ;
 
-        ui->qvtkWidget->show();
-        ui->qvtkWidget_2->show();
-        simVector.back()->ScaleForVisualization();
-        renderInputTypeImage();
-        renderFFTWindowed();
-    } catch(std::exception &e){
-        std::cout << e.what() << std::endl;
-    }
+    connect( workerSim_, SIGNAL(onFinish()), thread_, SLOT(quit())) ;
+    connect( workerSim_, SIGNAL(onFinish()), workerSim_, SLOT(deleteLater())) ;
+    // connect( workerSim_, SIGNAL(onFinish()), thread_, SLOT(deleteLater() ));
+    // automatically delete thread and task object when work is done:
+    // connect( thread_, SIGNAL(finished()), workerSim_, SLOT(deleteLater()) );
+    connect( thread_, SIGNAL(finished()), thread_, SLOT(deleteLater()) );
+    connect(workerSim_, SIGNAL(streamChanged(QString const&)),
+            ui->textEdit, SLOT(appendPlainText(QString const&)));
+    workerSim_->moveToThread(thread_);
+    thread_->start();
+    // emit(this->runWorkerSim(imgName, outputPlotName, num_threads, saveToFile));
+    emit(this->runWorkerSimWithMessenger(imgName, outputPlotName, num_threads, saveToFile, ui->textEdit));
+
+    // try {
+    //     simVector.push_back(make_shared<SAXSsim>());
+    //     auto& sim = simVector.back();
+    //     sim->SetInputParameters(imgName, outputPlotName, num_threads, saveToFile);
+    //     sim->SetQDebugStream(m_debugStream);
+    //     sim->Initialize();
+
+        // ui->qvtkWidget->show();
+        // ui->qvtkWidget_2->show();
+        // std::cout << "before back" << std::endl;
+        // simVector.back()->ScaleForVisualization();
+        // std::cout << "after back" << std::endl;
+        // renderInputTypeImage();
+        // renderFFTWindowed();
+    // } catch(std::exception &e){
+    //     std::cout << e.what() << std::endl;
+    // }
 
 
 }

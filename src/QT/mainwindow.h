@@ -20,6 +20,7 @@
 #include "vtkImageMapper3D.h"
 #include "vtkImageActor.h"
 #include "vtkInteractorStyleImage.h"
+#include <WorkerSim.h>
 
 #ifdef R_ENABLED
 #include "RInside.h"
@@ -35,6 +36,7 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
 public:
 /// typedefs hard copied from SAXSsim. Input Image must be unsigned.
     const static unsigned int  Dimension = 2;
@@ -62,6 +64,9 @@ public:
     RealTypeP m_fftVisualizationReal;
     OutputTypeP m_fftVisualizationOutput;
 
+signals:
+    void runWorkerSim(std::string, std::string, int, bool );
+    void runWorkerSimWithMessenger(std::string, std::string, int, bool, QPlainTextEdit* );
 private slots:
     void newSim(std::string imgName, std::string outputPlotName, int num_threads = 1, bool saveToFile = 1);
     void createNewDialog();
@@ -69,6 +74,7 @@ private slots:
     void writeFFTImageToDisk();
     void renderFFTWindowed();
     void ShowContextMenu2(const QPoint& pos);
+    void workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim);
 
 private:
     QVector<std::shared_ptr<SAXSsim>> simVector;
@@ -84,6 +90,8 @@ private:
     QAction *newSimAct;
     QAction *exitAct;
     Q_DebugStream *m_debugStream;
+    QThread *thread_;
+    WorkerSim *workerSim_;
 private:
     Ui::MainWindow *ui;
 };

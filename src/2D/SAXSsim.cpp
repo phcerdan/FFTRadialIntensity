@@ -87,12 +87,12 @@ void SAXSsim::Initialize()
     }
 }
 SAXSsim::~SAXSsim(){}
-#ifdef ENABLE_QT
-void SAXSsim::SetQDebugStream(Q_DebugStream* inputQDebugStream)
-{
-    m_debugStream = inputQDebugStream;
-}
-#endif
+// #ifdef ENABLE_QT
+// void SAXSsim::SetQDebugStream(Q_DebugStream* inputQDebugStream)
+// {
+//     m_debugStream = inputQDebugStream;
+// }
+// #endif
 SAXSsim::InputTypeP  SAXSsim::Read(){
     typedef itk::ImageFileReader< InputImageType > ReaderType;
     auto reader = ReaderType::New();
@@ -348,7 +348,6 @@ SAXSsim::Intensities & SAXSsim::ParallelComputeRadialIntensity(){
         #pragma omp parallel for
         for( int y = 0; y < midSize_.second +1; y++){
             int th = omp_get_thread_num();
-
             double I{0}, d_aprox{0};
             int  d{0} ;
             d_aprox = Modulo<double>(abs(x - midSize_.first), abs(y - midSize_.second));

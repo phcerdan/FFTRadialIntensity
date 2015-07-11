@@ -9,6 +9,8 @@
 #include <QString>
 #include <QDialog>
 #include "newdialog.h"
+// #define vtkRenderingCore_AUTOINIT 4(vtkInteractionStyle,vtkRenderingFreeType,vtkRenderingFreeTypeOpenGL,vtkRenderingOpenGL)
+// #define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
 // #include <itkVTKImageExport.h>
 #include <itkImageToVTKImageFilter.h>
 #include <QVTKWidget.h>
@@ -17,12 +19,10 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include "vtkImageViewer.h"
+// #include "vtkImageViewer.h"
 #include "vtkImageMapper3D.h"
 #include "vtkImageActor.h"
 #include "vtkInteractorStyleImage.h"
-template<typename TInputImage>
-typename itk::VTKImageExport<TInputImage>::Pointer ITKToVTKConnector(const TInputImage* itkImg);
 
 namespace Ui
 {

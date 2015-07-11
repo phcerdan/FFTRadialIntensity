@@ -19,7 +19,7 @@ include(${ITK_USE_FILE})
 message(status "** ITK Libraries:  ${ITK_LIBRARIES}")
 message(status "** ITK Includes:  ${ITK_INCLUDE_DIRS}")
 
-find_package(Boost 1.57.0 COMPONENTS
+find_package(Boost COMPONENTS
         system filesystem
         program_options
         serialization

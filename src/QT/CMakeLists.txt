@@ -4,9 +4,10 @@ SET( ITK_LIBRARIES ${ITK_LIBRARIES} PARENT_SCOPE )
 
 find_package(Qt5Widgets)
 find_package(Qt5PrintSupport)
-find_package(VTK COMPONENTS vtkGUISupportQt)
+# find_package(VTK COMPONENTS vtkGUISupportQt)
+find_package(VTK COMPONENTS vtkRenderingOpenGL vtkInteractionStyle vtkRenderingVolumeOpenGL vtkGUISupportQt NO_MODULE)
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS ${VTK_DEFINITIONS})
 message(status "** Libraries VTK: ${VTK_LIBRARIES}")
-
 # Find includes in corresponding build directories. For Eclipse CDT parsing (or eclim)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

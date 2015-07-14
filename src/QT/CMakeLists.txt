@@ -10,8 +10,8 @@ set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS ${VTK_DEFINITIONS})
 message(status "** Libraries VTK: ${VTK_LIBRARIES}")
 # Find includes in corresponding build directories. For Eclipse CDT parsing (or eclim)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-# include_directories(SYSTEM ${QT5Widges_INCLUDE_DIRS} ${QT5PrintSupport_INCLUDE_DIRS}
-#     ${VTK_INCLUDE_DIRS})
+include_directories(SYSTEM ${QT5Widgets_INCLUDE_DIRS} ${QT5PrintSupport_INCLUDE_DIRS}
+    ${VTK_INCLUDE_DIRS})
 
 # Instruct CMake to run moc, ui and rc automatically when needed.
 set(CMAKE_AUTOMOC ON)

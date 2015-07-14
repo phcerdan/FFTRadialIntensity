@@ -46,7 +46,7 @@ ENDIF(ENABLE_PARALLEL)
 IF(ENABLE_QT)
     find_package(Qt5Widgets)
     find_package(Qt5PrintSupport)
-    include_directories(SYSTEM ${QT5Widges_INCLUDE_DIRS} ${QT5PrintSupport_INCLUDE_DIRS}
+    include_directories(SYSTEM ${Qt5Widgets_INCLUDE_DIRS} ${Qt5PrintSupport_INCLUDE_DIRS}
         ${VTK_INCLUDE_DIRS})
     add_definitions(-DENABLE_QT)
     add_subdirectory(QT)

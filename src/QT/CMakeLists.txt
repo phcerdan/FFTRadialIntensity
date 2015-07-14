@@ -11,6 +11,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 #     ${VTK_INCLUDE_DIRS})
 
 # Instruct CMake to run moc, ui and rc automatically when needed.
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)

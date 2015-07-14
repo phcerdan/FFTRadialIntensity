@@ -42,6 +42,9 @@ IF(ENABLE_PARALLEL)
     add_definitions(-DENABLE_PARALLEL)
 ENDIF(ENABLE_PARALLEL)
 
+IF(ENABLE_R)
+    add_definitions(-DENABLE_R)
+ENDIF()
 
 IF(ENABLE_QT)
     find_package(Qt5Widgets)

@@ -15,7 +15,7 @@ using namespace std;
 void MainWindow::createNewDialog()
 {
 
-    newDialog = new NewDialog();
+    newDialog = new NewDialog(this);
     connect(newDialog, &NewDialog::newSimFromDialog, newDialog, &NewDialog::hide);
     connect(newDialog, &NewDialog::newSimFromDialog, this, &MainWindow::newSim);
     newDialog->exec();
@@ -23,29 +23,20 @@ void MainWindow::createNewDialog()
 }
 void MainWindow::workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim)
 {
-    // shared_ptr<SAXSsim> newsim = inputSim;
     simVector.push_back(inputSim);
     ui->qvtkWidget->show();
     ui->qvtkWidget_2->show();
-    std::cout << "workSimHasFinished" << std::endl;
     simVector.back()->ScaleForVisualization();
-    std::cout << "after" << std::endl;
     renderInputTypeImage();
     renderFFTWindowed();
+    newSimAct->setEnabled(true);
 }
-// void MainWindow::receiveQString(QString in)
-// {
-//
-// }
+
 void MainWindow::newSim(string imgName, string outputPlotName, int num_threads, bool saveToFile)
 {
-    // newDialog->hide();
-    // qRegisterMetaType<QTextBlock>();
-    // qRegisterMetaType<QTextCursor>();
-    // m_debugStream = new Q_DebugStream(std::cout, ui->textEdit); //Redirect Console output to QTextEdit
-    std::cout << "newSim called" << std::endl;
-    thread_    = new QThread;
+    thread_    = new QThread(this);
     workerSim_ = new WorkerSim;
+    qRegisterMetaType<QString>();
     qRegisterMetaType<std::string>();
     qRegisterMetaType<std::shared_ptr<SAXSsim> >();;
     connect(this, &MainWindow::runWorkerSim,
@@ -58,37 +49,18 @@ void MainWindow::newSim(string imgName, string outputPlotName, int num_threads, 
 
     connect( workerSim_, SIGNAL(onFinish()), thread_, SLOT(quit())) ;
     connect( workerSim_, SIGNAL(onFinish()), workerSim_, SLOT(deleteLater())) ;
-    // connect( workerSim_, SIGNAL(onFinish()), thread_, SLOT(deleteLater() ));
-    // automatically delete thread and task object when work is done:
-    // connect( thread_, SIGNAL(finished()), workerSim_, SLOT(deleteLater()) );
     connect( thread_, SIGNAL(finished()), thread_, SLOT(deleteLater()) );
     connect(workerSim_, SIGNAL(streamChanged(QString const&)),
             ui->textEdit, SLOT(appendPlainText(QString const&)));
     workerSim_->moveToThread(thread_);
     thread_->start();
+
+    newSimAct->setEnabled(false);
     // emit(this->runWorkerSim(imgName, outputPlotName, num_threads, saveToFile));
     emit(this->runWorkerSimWithMessenger(imgName, outputPlotName, num_threads, saveToFile, ui->textEdit));
 
-    // try {
-    //     simVector.push_back(make_shared<SAXSsim>());
-    //     auto& sim = simVector.back();
-    //     sim->SetInputParameters(imgName, outputPlotName, num_threads, saveToFile);
-    //     sim->SetQDebugStream(m_debugStream);
-    //     sim->Initialize();
-
-        // ui->qvtkWidget->show();
-        // ui->qvtkWidget_2->show();
-        // std::cout << "before back" << std::endl;
-        // simVector.back()->ScaleForVisualization();
-        // std::cout << "after back" << std::endl;
-        // renderInputTypeImage();
-        // renderFFTWindowed();
-    // } catch(std::exception &e){
-    //     std::cout << e.what() << std::endl;
-    // }
-
-
 }
+
 void MainWindow::createContextMenus()
 {
     ui->qvtkWidget_2->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -98,8 +70,6 @@ void MainWindow::createContextMenus()
 void MainWindow::ShowContextMenu2(const QPoint& pos)
 {
     QPoint globalPos =ui->qvtkWidget_2->mapToGlobal(pos);
-    // for QAbstractScrollArea and derived classes you would use:
-    // QPoint globalPos = myWidget->viewport()->mapToGlobal(pos);
 
     QMenu myMenu;
     myMenu.addAction("Original (Windowed)", this, SLOT(renderFFTWindowed()));
@@ -196,8 +166,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete newDialog;
-    delete m_debugStream;
 }
 
 void MainWindow::createActions()

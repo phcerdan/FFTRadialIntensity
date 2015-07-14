@@ -30,6 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <omp.h>
 #endif
 
+#ifdef ENABLE_QT
+#include "../QT/QtMessenger.h"
+#endif
 class SAXSsim
 {
 public:
@@ -51,16 +54,29 @@ public:
     using Intensities =  std::vector<std::vector<double> > ;
 
 public:
+#ifdef ENABLE_QT
+    SAXSsim(){m_messenger = new QtMessenger;}
+#else
     SAXSsim() = default;
+#endif
     SAXSsim(const std::string imgName, std::string outputPlotName = "",
              int num_threads = 1, bool saveToFile=1);
+    SAXSsim(const std::string imgName, std::string outputPlotName,
+             int num_threads , bool saveToFile, bool delayedInitialize);
     virtual ~SAXSsim ();
+
+protected:
+    void CheckEqualDimension();
+    void InitializeSizeMembers();
+
+    std::string inputName_;
+    std::string outputName_;
+    int numThreads_{1};
+    bool saveToFile_{ true };
+public:
+
     void Initialize();
     void SetInputParameters(std::string inputName, std::string outputName, int numThreads, bool saveToFile);
-// #ifdef ENABLE_QT
-//     void SetQDebugStream(Q_DebugStream* input);
-//     Q_DebugStream* m_debugStream;
-// #endif
     InputTypeP  Read();
     ComplexTypeP  & FFT();
     RealTypeP & FFTModulusSquare();
@@ -94,15 +110,9 @@ public:
     std::pair< int, int> imgSize_;
     std::pair<bool, bool> evenFlag_;
     int fMax_{0};
-protected:
-    void CheckEqualDimension();
-    void InitializeSizeMembers();
-
-    std::string inputName_;
-    std::string outputName_;
-    int numThreads_{1};
-    bool saveToFile_{ true };
-
+#ifdef ENABLE_QT
+    QtMessenger *m_messenger;
+#endif
     template<typename T = double>
     inline T Modulo (const T &a, const T& b){
         return sqrt(a*a + b*b);

@@ -27,13 +27,23 @@ using serialize_output_type = boost::archive::text_oarchive;
 // using cereal_output_type = cereal::JSONOutputArchive;
 using namespace itk;
 using namespace std;
-SAXSsim::SAXSsim(string inputName, string outputName, int numThreads, bool saveToFile) :
+SAXSsim::SAXSsim(string inputName, string outputName, int numThreads, bool saveToFile,
+        bool delayedInitialize) :
     inputName_{inputName}, outputName_{outputName},
     numThreads_{numThreads}, saveToFile_{saveToFile}
+#ifdef ENABLE_QT
+    , m_messenger{new QtMessenger}
+#endif
+{
+
+    // Initialize();
+
+}
+SAXSsim::SAXSsim(string inputName, string outputName, int numThreads, bool saveToFile):
+    SAXSsim::SAXSsim(inputName, outputName, numThreads, saveToFile, false)
 {
 
     Initialize();
-
 }
 void SAXSsim::SetInputParameters(string inputName, string outputName, int numThreads, bool saveToFile)
 {
@@ -50,19 +60,37 @@ void SAXSsim::Initialize()
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
 
-    cout << "Reading Image: " << inputName_ << endl;
+    std::string msg;
+    msg = "Reading Image: " + inputName_;
+    std::cout << msg << std::endl;
+#ifdef ENABLE_QT
+    QString Qmsg;
+    Qmsg = QString::fromStdString(msg);
+    m_messenger->message(Qmsg);
+#endif
+
     Read();
     FFT();
     FFTModulusSquare();
 
     // Compute Intensities
-    cout << "Computing Intensity..." << endl;
+    msg = "Computing Intensity...";
+    cout << msg << endl;
+#ifdef ENABLE_QT
+    Qmsg = QString::fromStdString(msg);
+    m_messenger->message(Qmsg);
+#endif
 #ifdef ENABLE_PARALLEL
     // int max_threads = omp_get_max_threads();
     int max_threads = omp_get_num_procs();
     if (numThreads_ > max_threads) numThreads_ = max_threads;
     omp_set_num_threads(numThreads_);
-    cout << "Number of Threads:" << numThreads_ <<" MaxThreads: " << max_threads << endl;
+    msg = "Number of Threads: " + std::to_string(numThreads_)+ " MaxThreads: " + std::to_string(max_threads);
+    cout << msg << endl;
+#ifdef ENABLE_QT
+    Qmsg = QString::fromStdString(msg);
+    m_messenger->message(Qmsg);
+#endif
     if(numThreads_>1) ParallelComputeRadialIntensity();
     else ComputeRadialIntensity();
 #else
@@ -73,8 +101,12 @@ void SAXSsim::Initialize()
     // Display execution time
     end = chrono::system_clock::now();
     chrono::duration<double, ratio<60>> elapsed_time = end-start;
-    cout << "Elapsed time: " << elapsed_time.count() << " min" << endl;
-
+    msg = "Elapsed time: " +  std::to_string(elapsed_time.count()) + " min";
+    cout << msg << endl;
+#ifdef ENABLE_QT
+    Qmsg = QString::fromStdString(msg);
+    m_messenger->message(Qmsg);
+#endif
     // Save results. Get the filename of input with no extension
     if (saveToFile_){
         boost::filesystem::path opath{inputName_};
@@ -82,7 +114,12 @@ void SAXSsim::Initialize()
         auto input_no_extension = path_no_extension.generic_string();
         if (outputName_ == "")
             outputName_ = "./results/" + input_no_extension + ".plot";
-        cout << "Output: I vs q. Saving as: " << outputName_ << endl;
+        msg = "Output: I vs q. Saving as: " + outputName_;
+        cout << msg << endl;
+#ifdef ENABLE_QT
+        Qmsg = QString::fromStdString(msg);
+        m_messenger->message(Qmsg);
+#endif
         SaveIntensityProfile(outputName_);
     }
 }

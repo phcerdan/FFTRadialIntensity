@@ -25,8 +25,6 @@
 #ifdef R_ENABLED
 #include "RInside.h"
 #endif
-template<typename TInputImage>
-typename itk::VTKImageExport<TInputImage>::Pointer ITKToVTKConnector(const TInputImage* itkImg);
 
 namespace Ui
 {
@@ -90,8 +88,8 @@ private:
     QAction *newSimAct;
     QAction *exitAct;
     Q_DebugStream *m_debugStream;
-    QThread *thread_;
-    WorkerSim *workerSim_;
+    QThread *thread_      = 0;
+    WorkerSim *workerSim_ = 0;
 private:
     Ui::MainWindow *ui;
 };

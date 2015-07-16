@@ -1,3 +1,21 @@
+/**
+ FFT From Image. Apply to a microscopy image, returning a I-q data set,
+ allowing comparisson with Small Angle X-ray Scattering experiments.
+ Copyright © 2015 Pablo Hernandez-Cerdan
+
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+*/
 #include "gmock/gmock.h"
 #include "SAXSsim.h"
 #include <memory>
@@ -18,27 +36,6 @@ TEST(img5x5, CorrectNumberOfIntensities){
     EXPECT_EQ(sim->fMax_ + 1, sim->intensities_.size());
     EXPECT_EQ(15, total_indices);
 }
-#ifdef ENABLE_QT
-#include "../../QT/Q_DebugStream.h"
-#include <QtWidgets/QTextEdit>
-// TEST(DebugStream, isSet){
-//
-//
-//
-//     int argc = 0;
-//     char ** argv = 0;
-//     QApplication app(argc, argv);
-//     auto plaintext = new QPlainTextEdit(app);
-//     auto debug_stream = new Q_DebugStream(std::cout,plaintext);
-//     const string img{"./fixtures/5x5.tiff"};
-//     auto sim = make_shared<SAXSsim>(img ) ;
-//     sim->SetQDebugStream(debug_stream);
-//     sim->Initialize();
-//     delete plaintext;
-//     delete debug_stream;
-//     delete app
-// }
-#endif
 TEST(img4x4_F, CorrectNumberOfIntensities){
     const string img{"./fixtures/4x4.tiff"};
     auto sim = make_shared<SAXSsim>(img) ;

@@ -1,18 +1,20 @@
-/* SAXSsim, Apply to a microscopy image, returning a I-q data set, allowing comparisson with Small Angle X-ray Scattering experiments.
-Copyright (C) 2015 Pablo Hernandez-Cerdan
+/**
+ FFT From Image. Apply to a microscopy image, returning a I-q data set,
+ allowing comparisson with Small Angle X-ray Scattering experiments.
+ Copyright © 2015 Pablo Hernandez-Cerdan
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef SAXSsim_H_
 #define SAXSsim_H_
@@ -65,6 +67,7 @@ public:
              int num_threads , bool saveToFile, bool delayedInitialize);
     virtual ~SAXSsim ();
 
+    std::string GetOutputName(){ return outputName_;};
 protected:
     void CheckEqualDimension();
     void InitializeSizeMembers();
@@ -81,7 +84,16 @@ public:
     ComplexTypeP  & FFT();
     RealTypeP & FFTModulusSquare();
     void SaveIntensityProfile(const std::string & fname);
-    void GeneratePDF(const std::string & resultfile, double image_resolution);
+    std::string GeneratePDF(
+            const std::string & resultfile,
+            double nm_per_pixel_resolution,
+            const std::string & scriptFile =
+            "../src/scripts/plotI-q_PDF.R");
+    std::string GenerateSVG(
+            const std::string & resultInputFile,
+            double nm_per_pixel_resolution,
+            const std::string & scriptFile =
+            "../src/scripts/plotI-q_SVG.R");
     void WriteFFT( const RealTypeP & inputFFT,  const std::string &outputFilename);
     OutputTypeP RescaleFFT(const RealTypeP& inputFFT);
 

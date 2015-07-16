@@ -1,3 +1,21 @@
+/**
+ FFT From Image. Apply to a microscopy image, returning a I-q data set,
+ allowing comparisson with Small Angle X-ray Scattering experiments.
+ Copyright © 2015 Pablo Hernandez-Cerdan
+
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published
+ by the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+*/
 #include "SAXSsim.h"
 #include <itkForwardFFTImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
@@ -15,25 +33,23 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
-// #include <cereal/archives/portable_binary.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-using serialize_input_type = boost::archive::text_iarchive;
-using serialize_output_type = boost::archive::text_oarchive;
-// using serialize_input_type = cereal::PortableBinaryInputArchive;
-// using serialize_output_type = cereal::PortableBinaryOutputArchive;
-// #include <cereal/archives/json.hpp>
-// using cereal_input_type = cereal::JSONInputArchive;
-// using cereal_output_type = cereal::JSONOutputArchive;
 using namespace itk;
 using namespace std;
-SAXSsim::SAXSsim(string inputName, string outputName, int numThreads, bool saveToFile) :
+SAXSsim::SAXSsim(string inputName, string outputName, int numThreads, bool saveToFile,
+        bool delayedInitialize) :
     inputName_{inputName}, outputName_{outputName},
     numThreads_{numThreads}, saveToFile_{saveToFile}
+#ifdef ENABLE_QT
+    , m_messenger{new QtMessenger}
+#endif
+{
+}
+
+SAXSsim::SAXSsim(string inputName, string outputName, int numThreads, bool saveToFile):
+    SAXSsim::SAXSsim(inputName, outputName, numThreads, saveToFile, false)
 {
 
     Initialize();
-
 }
 void SAXSsim::SetInputParameters(string inputName, string outputName, int numThreads, bool saveToFile)
 {
@@ -50,19 +66,37 @@ void SAXSsim::Initialize()
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
 
-    cout << "Reading Image: " << inputName_ << endl;
+    std::string msg;
+    msg = "Reading Image: " + inputName_;
+    std::cout << msg << std::endl;
+#ifdef ENABLE_QT
+    QString Qmsg;
+    Qmsg = QString::fromStdString(msg);
+    m_messenger->message(Qmsg);
+#endif
+
     Read();
     FFT();
     FFTModulusSquare();
 
     // Compute Intensities
-    cout << "Computing Intensity..." << endl;
+    msg = "Computing Intensity...";
+    cout << msg << endl;
+#ifdef ENABLE_QT
+    Qmsg = QString::fromStdString(msg);
+    m_messenger->message(Qmsg);
+#endif
 #ifdef ENABLE_PARALLEL
     // int max_threads = omp_get_max_threads();
     int max_threads = omp_get_num_procs();
     if (numThreads_ > max_threads) numThreads_ = max_threads;
     omp_set_num_threads(numThreads_);
-    cout << "Number of Threads:" << numThreads_ <<" MaxThreads: " << max_threads << endl;
+    msg = "Number of Threads: " + std::to_string(numThreads_)+ " MaxThreads: " + std::to_string(max_threads);
+    cout << msg << endl;
+#ifdef ENABLE_QT
+    Qmsg = QString::fromStdString(msg);
+    m_messenger->message(Qmsg);
+#endif
     if(numThreads_>1) ParallelComputeRadialIntensity();
     else ComputeRadialIntensity();
 #else
@@ -73,8 +107,12 @@ void SAXSsim::Initialize()
     // Display execution time
     end = chrono::system_clock::now();
     chrono::duration<double, ratio<60>> elapsed_time = end-start;
-    cout << "Elapsed time: " << elapsed_time.count() << " min" << endl;
-
+    msg = "Elapsed time: " +  std::to_string(elapsed_time.count()) + " min";
+    cout << msg << endl;
+#ifdef ENABLE_QT
+    Qmsg = QString::fromStdString(msg);
+    m_messenger->message(Qmsg);
+#endif
     // Save results. Get the filename of input with no extension
     if (saveToFile_){
         boost::filesystem::path opath{inputName_};
@@ -82,17 +120,16 @@ void SAXSsim::Initialize()
         auto input_no_extension = path_no_extension.generic_string();
         if (outputName_ == "")
             outputName_ = "./results/" + input_no_extension + ".plot";
-        cout << "Output: I vs q. Saving as: " << outputName_ << endl;
+        msg = "Output: I vs q. Saving as: " + outputName_;
+        cout << msg << endl;
+#ifdef ENABLE_QT
+        Qmsg = QString::fromStdString(msg);
+        m_messenger->message(Qmsg);
+#endif
         SaveIntensityProfile(outputName_);
     }
 }
 SAXSsim::~SAXSsim(){}
-// #ifdef ENABLE_QT
-// void SAXSsim::SetQDebugStream(Q_DebugStream* inputQDebugStream)
-// {
-//     m_debugStream = inputQDebugStream;
-// }
-// #endif
 SAXSsim::InputTypeP  SAXSsim::Read(){
     typedef itk::ImageFileReader< InputImageType > ReaderType;
     auto reader = ReaderType::New();
@@ -113,17 +150,7 @@ SAXSsim::InputTypeP  SAXSsim::Read(){
     InitializeSizeMembers();
     return inputImg_;
 }
-// double SAXSsim::secondMaxIntensityValue()
-// {
-//     auto copyIntensities = intensitiesMean_;
-//     std::partial_sort(
-//             copyIntensities.begin(),
-//             copyIntensities.begin()+2,
-//             copyIntensities.end(),
-//             std::greater<double>());
-//     return secondMaxIntensityValue_ = copyIntensities[1];
-//
-// }
+
 void SAXSsim::CheckEqualDimension(){
     auto region = inputImg_->GetLargestPossibleRegion();
     auto x      = region.GetSize()[0];
@@ -213,18 +240,49 @@ void SAXSsim::ScaleForVisualization()
 
     LogFFTModulusSquare(fftModulusSquare_);
 }
-void SAXSsim::GeneratePDF(const string & resultfile, double image_resolution){
+std::string SAXSsim::GeneratePDF(
+        const string & resultInputFile,
+        double nm_per_pixel_resolution,
+        const string & scriptFile){
     // Execute R script to generate pdf with the plot.
-    string command{"./plotI-q.R " + resultfile + " "+ std::to_string(image_resolution)};
+    string command{scriptFile + " " + resultInputFile + " " + std::to_string(nm_per_pixel_resolution)};
     cout << "executing command: " << command << endl;
     system(command.c_str());
 
-    // Open generated pdf.
-    int lastindex = resultfile.find_last_of(".");
-    string filename_no_ext = resultfile.substr(0, lastindex);
-    string pdf{"evince " + filename_no_ext + ".pdf"};
-    cout << "opening pdf: " << pdf << endl;
-    system(pdf.c_str());
+    // // Open generated pdf.
+    // int lastindex = resultInputFile.find_last_of(".");
+    // string filename_no_ext = resultInputFile.substr(0, lastindex);
+    // string pdf{"evince " + filename_no_ext + ".pdf"};
+    // cout << "opening pdf: " << pdf << endl;
+    // system(pdf.c_str());
+
+    std::size_t found = resultInputFile.find_last_of("/\\");
+    std::string path = resultInputFile.substr(0,found);
+    std::string file = resultInputFile.substr(found+1);
+    int lastindex = file.find_last_of(".");
+    string filename_no_ext = file.substr(0, lastindex);
+    return  path + "/" + "pdf" + "/" +  filename_no_ext + ".svg";
+}
+
+std::string SAXSsim::GenerateSVG(
+        const string & resultInputFile,
+        double nm_per_pixel_resolution,
+        const string & scriptFile){
+    // Execute R script to generate pdf with the plot.
+    string command{scriptFile + " " + resultInputFile + " " + std::to_string(nm_per_pixel_resolution)};
+    cout << "executing command: " << command << endl;
+    system(command.c_str());
+
+    // int lastindex = resultInputFile.find_last_of(".");
+    // string filename_no_ext = resultInputFile.substr(0, lastindex);
+    // The output after the RScript set in the default script.
+    std::size_t found = resultInputFile.find_last_of("/\\");
+    std::string path = resultInputFile.substr(0,found);
+    std::string file = resultInputFile.substr(found+1);
+    int lastindex = file.find_last_of(".");
+    string filename_no_ext = file.substr(0, lastindex);
+    return  path + "/" + "svg" + "/" +  filename_no_ext + ".svg";
+
 }
 #include <itkImageRegionConstIteratorWithIndex.h>
 SAXSsim::RealTypeP & SAXSsim::FFTModulusSquare(){

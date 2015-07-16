@@ -16,38 +16,17 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef NEWDIALOG_H_
-#define NEWDIALOG_H_
+#ifndef QTMESSENGER_H_
+#define QTMESSENGER_H_
+#include <QtCore>
+#include <QString>
 
-#include "ui_newdialog.h"
-#include <QPlainTextEdit>
-#include <QDialog>
-#include <QFileDialog>
 
-namespace Ui
-{
-class NewDialog;
-}
-
-class NewDialog : public QDialog
+class QtMessenger : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit NewDialog(QWidget *parent = 0);
-    virtual  ~NewDialog();
-public slots:
-    void openInputImage();
-    void selectOutputPlot();
-    void on_acceptedSettings();
 signals:
-    void newSimFromDialog(std::string imgName, std::string outputPlotName, int num_threads, bool saveToFile );
-public:
-    QString inputImage;
-    QString outputPlot;
-    bool saveToFile;
-    int numThreads;
-private:
-    Ui::NewDialog *ui;
+    void message(const QString & msg);
 };
 #endif

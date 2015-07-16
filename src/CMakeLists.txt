@@ -22,7 +22,6 @@ message(status "** ITK Includes:  ${ITK_INCLUDE_DIRS}")
 find_package(Boost COMPONENTS
         system filesystem
         program_options
-        serialization
         REQUIRED )
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
@@ -42,6 +41,9 @@ IF(ENABLE_PARALLEL)
     add_definitions(-DENABLE_PARALLEL)
 ENDIF(ENABLE_PARALLEL)
 
+IF(ENABLE_R)
+    add_definitions(-DENABLE_R)
+ENDIF()
 
 IF(ENABLE_QT)
     find_package(Qt5Widgets)

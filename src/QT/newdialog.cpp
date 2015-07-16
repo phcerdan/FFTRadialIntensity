@@ -21,7 +21,8 @@ using namespace std;
 
 NewDialog::NewDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::NewDialog)
+    ui(new Ui::NewDialog),
+	saveToFile{true}, numThreads{1}
 {
     ui->setupUi(this);
     connect(ui->pushButton,SIGNAL(clicked()), this, SLOT(openInputImage()));

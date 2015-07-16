@@ -129,10 +129,15 @@ void SAXSsim::Initialize()
         SaveIntensityProfile(outputName_);
     }
 }
-SAXSsim::~SAXSsim(){}
+SAXSsim::~SAXSsim()
+{
+#ifdef ENABLE_QT
+	delete m_messenger;
+#endif
+}
 SAXSsim::InputTypeP  SAXSsim::Read(){
     typedef itk::ImageFileReader< InputImageType > ReaderType;
-    auto reader = ReaderType::New();
+    ReaderType::Pointer reader = ReaderType::New();
 
     reader->SetFileName( inputName_ );
 

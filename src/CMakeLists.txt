@@ -48,7 +48,13 @@ ENDIF()
 IF(ENABLE_QT)
     find_package(Qt5Widgets)
     find_package(Qt5PrintSupport)
-    include_directories(SYSTEM ${QT5Widges_INCLUDE_DIRS} ${QT5PrintSupport_INCLUDE_DIRS}
+    find_package(Qt5Svg)
+    find_package(Qt5DBus)
+    include_directories(SYSTEM
+        ${QT5Widges_INCLUDE_DIRS}
+        ${QT5PrintSupport_INCLUDE_DIRS}
+        ${QT5Svg_INCLUDE_DIRS}
+        ${QT5DBus_INCLUDE_DIRS}
         ${VTK_INCLUDE_DIRS})
     add_definitions(-DENABLE_QT)
     add_subdirectory(QT)

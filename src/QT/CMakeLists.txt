@@ -1,7 +1,8 @@
 SET( ITK_LIBRARIES ${ITK_LIBRARIES} PARENT_SCOPE )
 SET( Qt5Widgets_LIBRARIES ${Qt5Widgets_LIBRARIES} PARENT_SCOPE )
 SET( Qt5PrintSupport_LIBRARIES ${Qt5PrintSupport_LIBRARIES} PARENT_SCOPE )
-find_package(Qt5Svg)
+SET( Qt5Svg_LIBRARIES ${Qt5Svg_LIBRARIES} PARENT_SCOPE )
+SET( Qt5DBus_LIBRARIES ${Qt5DBus_LIBRARIES} PARENT_SCOPE )
 
 find_package(VTK COMPONENTS vtkGUISupportQt)
 message(status "** Libraries VTK: ${VTK_LIBRARIES}")
@@ -20,14 +21,37 @@ set(CMAKE_AUTORCC ON)
 # QT5_ADD_RESOURCES(QT_RESOURCES resources.qrc)
 add_executable(FFTFromImage.exe mainwindow.cpp newdialog.cpp WorkerSim.cpp mainQT.cpp resources.qrc)
 # include_directories(${IPP_LIB_FOLDER})
-target_link_libraries(FFTFromImage.exe  ${Qt5Widgets_LIBRARIES} ${Qt5PrintSupport_LIBRARIES})
+target_link_libraries(FFTFromImage.exe
+    ${Qt5Widgets_LIBRARIES}
+    ${Qt5PrintSupport_LIBRARIES}
+    ${Qt5Svg_LIBRARIES}
+    ${Qt5DBus_LIBRARIES}
+    )
 target_link_libraries(FFTFromImage.exe SAXSsim)
 target_link_libraries(FFTFromImage.exe ${VTK_LIBRARIES})
-message(status "** Libraries QT: ${Qt5Widgets_LIBRARIES} ${Qt5PrintSupport_LIBRARIES}")
-
-target_link_libraries(FFTFromImage.exe  ${Qt5Svg_LIBRARIES})
 # SET(ENABLE_GOOGLE_TEST ${ENABLE_GOOGLE_TEST} PARENT_SCOPE)
 # IF(ENABLE_GOOGLE_TEST)
 #     add_subdirectory(test)
 #     add_subdirectory(singleImagesFromMontage)
 # ENDIF()
+
+#IF WIN
+# include(InstallRequiredSystemLibraries)
+#END IF
+INSTALL(TARGETS FFTFromImage.exe
+    BUNDLE  DESTINATION lib_external  COMPONENT Runtime
+    RUNTIME DESTINATION bin COMPONENT Runtime
+    LIBRARY DESTINATION lib COMPONENT Runtime
+    ARCHIVE DESTINATION lib COMPONENT Runtime
+    )
+SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/FFTFromImage.exe")
+set(YOUR_PLUGINS "") #empty for now
+set(YOUR_LIBRARY_DIRS "")
+install(CODE "
+    include(BundleUtilities)
+    fixup_bundle(\"${APPS}\" \"\${YOUR_PLUGINS}\" \"${YOUR_LIBRARY_DIRS}\")
+    ")
+
+SET(CPACK_GENERATOR "ZIP")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Pablo Hernandez") #required
+include(CPack)

@@ -3,7 +3,12 @@ set(CMAKE_ECLIPSE_VERSION=4.4)
 # cmake ../src  -G"Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_ECLIPSE_GENERATE_SOURCE_PROJECT=TRUE
 cmake_policy(SET CMP0012 NEW) # TO avoid ipcv lib error
 if (UNIX)
-    list(APPEND CMAKE_CXX_FLAGS "-fmessage-length=0  -Wall -std=c++11")
+    if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+        list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+        list(APPEND CMAKE_LINKER_FLAGS "-stdlib=libc++")
+    else()
+        list(APPEND CMAKE_CXX_FLAGS "-fmessage-length=0  -Wall -std=c++11")
+    endif()
 endif()
 
 project(tem-saxs_p)

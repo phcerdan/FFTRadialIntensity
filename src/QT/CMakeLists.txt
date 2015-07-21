@@ -38,20 +38,36 @@ target_link_libraries(FFTFromImage.exe ${VTK_LIBRARIES})
 #IF WIN
 # include(InstallRequiredSystemLibraries)
 #END IF
-INSTALL(TARGETS FFTFromImage.exe
-    BUNDLE  DESTINATION lib_external  COMPONENT Runtime
-    RUNTIME DESTINATION bin COMPONENT Runtime
-    LIBRARY DESTINATION lib COMPONENT Runtime
-    ARCHIVE DESTINATION lib COMPONENT Runtime
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include
+        FILES_MATCHING  PATTERN "*.h"
+        PATTERN "test/"      EXCLUDE
+        PATTERN "resources/" EXCLUDE)
+install(TARGETS FFTFromImage.exe
+    BUNDLE  DESTINATION .
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
     )
-SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/FFTFromImage.exe")
-set(YOUR_PLUGINS "") #empty for now
-set(YOUR_LIBRARY_DIRS "")
-install(CODE "
+get_target_property(MY_BINARY_LOCATION FFTFromImage.exe LOCATION)
+include(GetPrerequisites)
+get_prerequisites("${MY_BINARY_LOCATION}" DEPENDENCIES 1 1 "" "")
+foreach(DEPENDENCY_FILE ${DEPENDENCIES})
+    gp_resolve_item("\${CMAKE_INSTALL_PREFIX}/FFTFromImage.exe" "${DEPENDENCY_FILE}" "" "" resolved_file)
+    message("resolved_file='${resolved_file}'")
+    install(PROGRAMS ${resolved_file} DESTINATION dependencies)
+endforeach()
+
+if(APPLE)
+    set(APPS "\${CMAKE_INSTALL_PREFIX}/bin/FFTFromImage.exe")
+    set(YOUR_PLUGINS "") #empty for now
+    set(YOUR_LIBRARY_DIRS "")
+    install(CODE "
     include(BundleUtilities)
     fixup_bundle(\"${APPS}\" \"\${YOUR_PLUGINS}\" \"${YOUR_LIBRARY_DIRS}\")
     ")
+    SET(CPACK_GENERATOR "DropNgo")
+else()
+    SET(CPACK_GENERATOR "ZIP")
+endif()
 
-SET(CPACK_GENERATOR "ZIP")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Pablo Hernandez") #required
 include(CPack)

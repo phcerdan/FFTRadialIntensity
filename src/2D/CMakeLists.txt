@@ -33,16 +33,29 @@ IF(ENABLE_GOOGLE_TEST)
     add_subdirectory(singleImagesFromMontage)
 ENDIF()
 
-INSTALL(TARGETS SAXSsim.exe SAXSsim
-    BUNDLE  DESTINATION lib_external COMPONENT Runtime
-    RUNTIME DESTINATION bin COMPONENT Runtime
-    LIBRARY DESTINATION lib COMPONENT Runtime
-    ARCHIVE DESTINATION lib COMPONENT Runtime
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include
+    FILES_MATCHING PATTERN "SAXSsim.h"
+    PATTERN "test/"       EXCLUDE
+    REGEX "singleImages*/" EXCLUDE)
+install(DIRECTORY ../scripts/ DESTINATION .
+        USE_SOURCE_PERMISSIONS
+        PATTERN "*plotI-q_SVG*" EXCLUDE)
+install(DIRECTORY ../fixtures DESTINATION .)
+
+install(PROGRAMS ../scripts/plotI-q_SVG.R DESTINATION bin)
+
+install(TARGETS SAXSsim.exe SAXSsim
+    BUNDLE  DESTINATION .
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
     )
-SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/FFTFromImage.exe")
-set(YOUR_PLUGINS "") #empty for now
-set(YOUR_LIBRARY_DIRS "")
-install(CODE "
-    include(BundleUtilities)
-    fixup_bundle(\"${APPS}\" \"\${YOUR_PLUGINS}\" \"${YOUR_LIBRARY_DIRS}\")
-    ")
+if(APPLE)
+    set(APPS "\${CMAKE_INSTALL_PREFIX}/bin/FFTFromImage.exe")
+    set(YOUR_PLUGINS "") #empty for now
+    set(YOUR_LIBRARY_DIRS "")
+    install(CODE "
+        include(BundleUtilities)
+        fixup_bundle(\"${APPS}\" \"\${YOUR_PLUGINS}\" \"${YOUR_LIBRARY_DIRS}\")
+        ")
+endif()

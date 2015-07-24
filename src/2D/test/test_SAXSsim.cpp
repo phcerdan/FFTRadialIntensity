@@ -16,43 +16,42 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#include "gmock/gmock.h"
-#include "SAXSsim.h"
 #include <memory>
-using namespace testing;
+#include "catch.hpp"
+#include "SAXSsim.h"
 using namespace std;
 
-TEST(img5x5, CorrectNumberOfIntensities){
+TEST_CASE("Intensities per pixel in ODD image", "[img5x5]"){
     const string img{"./fixtures/5x5.tiff"};
     auto sim = make_shared<SAXSsim>(img) ;
-    EXPECT_EQ( 5, sim->imgSize_.first );
-    EXPECT_EQ( 5, sim->imgSize_.second );
-    EXPECT_FALSE(sim->evenFlag_.first);
-    EXPECT_FALSE(sim->evenFlag_.second);
+    REQUIRE( sim->imgSize_.first == 5 );
+    REQUIRE( sim->imgSize_.second == 5);
+    REQUIRE( sim->evenFlag_.first == false);
+    REQUIRE( sim->evenFlag_.second == false);
     int total_indices{0};
     for (auto &i : sim->intensities_){
         total_indices += i.size();
     }
-    EXPECT_EQ(sim->fMax_ + 1, sim->intensities_.size());
-    EXPECT_EQ(15, total_indices);
+    REQUIRE(sim->fMax_ + 1 == sim->intensities_.size());
+    REQUIRE(total_indices == 15);
 }
-TEST(img4x4_F, CorrectNumberOfIntensities){
+TEST_CASE("Intensities per pixel in EVEN image", "[img4x4]"){
+
     const string img{"./fixtures/4x4.tiff"};
     auto sim = make_shared<SAXSsim>(img) ;
-    EXPECT_EQ( 4, sim->imgSize_.first );
-    EXPECT_EQ( 4, sim->imgSize_.second );
-    EXPECT_TRUE(sim->evenFlag_.first);
-    EXPECT_TRUE(sim->evenFlag_.second);
+    REQUIRE( sim->imgSize_.first == 4 );
+    REQUIRE( sim->imgSize_.second == 4 );
+    REQUIRE( sim->evenFlag_.first == true);
+    REQUIRE(sim->evenFlag_.second == true);
 
     int total_indices{0};
     for (auto &i : sim->intensities_){
         total_indices += i.size();
     }
-    EXPECT_EQ(12, total_indices);
+    REQUIRE(total_indices == 12);
 }
 
-
-TEST(disc20_F, writeDFT){
+TEST_CASE("Write FFT file", "[disc20]" ){
     const string img{"./fixtures/disc20.tif"};
     auto sim = make_shared<SAXSsim>(img) ;
     string output_f = "./results/discFFT.tif";
@@ -72,41 +71,41 @@ TEST(disc20_F, writeDFT){
 }
 
 #ifdef ENABLE_PARALLEL
-struct parallel_img5x5_F : public ::testing::Test{
-    static const string img;
-    static shared_ptr<SAXSsim> sim;
 
-    static void SetUpTestCase(){
-        sim = make_shared<SAXSsim>(img, "", 4) ;
-    };
-};
-const string parallel_img5x5_F::img{"./fixtures/5x5.tiff"};
-shared_ptr<SAXSsim> parallel_img5x5_F::sim;
+TEST_CASE("Setup a 2 core test SAXSsim", "[parallel]"){
+    const string img{"./fixtures/5x5.tiff"};
+    shared_ptr<SAXSsim> simParallel = make_shared<SAXSsim>(img, "", 2);
 
-TEST_F(parallel_img5x5_F, IntensityComparisson_single){
-    shared_ptr<SAXSsim> sim_single = make_shared<SAXSsim>(img);
-    auto i_p                 =  sim->intensities_;
-    auto i_s                 =  sim_single->intensities_;
-    double sump = 0;
-    double sums = 0;
-    for(auto id : i_p){
-        for(auto iv : id){
-            sump += iv;
+    SECTION(" Compare with Single thread"){
+        shared_ptr<SAXSsim> simSingle = make_shared<SAXSsim>(img);
+        auto i_p                 =  simParallel->intensities_;
+        auto i_s                 =  simSingle->intensities_;
+        REQUIRE(i_p.size() == i_s.size());
+        double sump = 0;
+        double sums = 0;
+        for(auto id : i_p){
+            for(auto iv : id){
+                sump += iv;
+            }
         }
-    }
-    for(auto id : i_s){
-        for(auto iv : id){
-            sums += iv;
+        for(auto id : i_s){
+            for(auto iv : id){
+                sums += iv;
+            }
         }
+        REQUIRE(sump == Approx(sums));
     }
-    EXPECT_EQ(sump, sums);
-}
 
-TEST_F(parallel_img5x5_F, IntensityComparissonDifferent_j){
-    shared_ptr<SAXSsim> sim_maxj = make_shared<SAXSsim>(img, "./results/5x5p_jmax.plot", omp_get_num_procs());
-    auto i_p                 =  sim->MeanIntensities();
-    auto i_s                 =  sim_maxj->MeanIntensities();
-    EXPECT_EQ(i_p, i_s);
+    SECTION(" Compare with Max Cores"){
+        shared_ptr<SAXSsim> simMaxCores = make_shared<SAXSsim>(img, "./results/5x5p_jmax.plot", omp_get_num_procs());
+        auto i_p                 =  simParallel->MeanIntensities();
+        auto i_s                 =  simMaxCores->MeanIntensities();
+        REQUIRE(i_p.size() == i_s.size());
+        for (size_t ind = 0; ind < i_p.size(); ind++ ){
+            REQUIRE(i_p[ind] == Approx(i_s[ind]));
+        }
+        // REQUIRE(i_p == i_s);
+    }
 }
 
 #endif // ENABLE_PARALLEL

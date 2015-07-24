@@ -29,11 +29,6 @@ target_link_libraries(FFTFromImage.exe
     )
 target_link_libraries(FFTFromImage.exe SAXSsim)
 target_link_libraries(FFTFromImage.exe ${VTK_LIBRARIES})
-# SET(ENABLE_GOOGLE_TEST ${ENABLE_GOOGLE_TEST} PARENT_SCOPE)
-# IF(ENABLE_GOOGLE_TEST)
-#     add_subdirectory(test)
-#     add_subdirectory(singleImagesFromMontage)
-# ENDIF()
 
 #IF WIN
 # include(InstallRequiredSystemLibraries)

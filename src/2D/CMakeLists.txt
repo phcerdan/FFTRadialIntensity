@@ -30,8 +30,8 @@ add_executable(SAXSsim.exe main.cpp)
 target_link_libraries(SAXSsim.exe SAXSsim)
 
 
-SET(ENABLE_GOOGLE_TEST ${ENABLE_GOOGLE_TEST} PARENT_SCOPE)
-IF(ENABLE_GOOGLE_TEST)
+SET(ENABLE_TEST ${ENABLE_TEST} PARENT_SCOPE)
+IF(ENABLE_TEST)
     add_subdirectory(test)
     add_subdirectory(singleImagesFromMontage)
 ENDIF()

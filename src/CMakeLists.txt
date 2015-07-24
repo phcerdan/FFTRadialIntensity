@@ -33,7 +33,8 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(ENABLE_PARALLEL "ON" CACHE BOOL "Enable to use openMP")
 set(ENABLE_QT "ON" CACHE BOOL "Enable to use QT interface")
 set(ENABLE_R "ON" CACHE BOOL "Enable to use R in QT interface")
-
+#Catch framework header in ./include/catch.hpp
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/include)
 IF(ENABLE_PARALLEL)
     find_package(OpenMP REQUIRED)
     if(${OPENMP_FOUND})
@@ -56,12 +57,13 @@ IF(ENABLE_QT)
     find_package(Qt5Svg)
     find_package(Qt5DBus)
     include_directories(SYSTEM
-        ${QT5Widges_INCLUDE_DIRS}
-        ${QT5PrintSupport_INCLUDE_DIRS}
-        ${QT5Svg_INCLUDE_DIRS}
-        ${QT5DBus_INCLUDE_DIRS}
+        ${Qt5Widgets_INCLUDE_DIRS}
+        ${Qt5PrintSupport_INCLUDE_DIRS}
+        ${Qt5Svg_INCLUDE_DIRS}
+        ${Qt5DBus_INCLUDE_DIRS}
         ${VTK_INCLUDE_DIRS})
     add_definitions(-DENABLE_QT)
+    message(status "Qt5Widgets: ${Qt5Widgets_INCLUDE_DIRS}")
     add_subdirectory(QT)
 ENDIF(ENABLE_QT)
 

@@ -5,11 +5,9 @@ SET( ENABLE_QT ${ENABLE_QT} PARENT_SCOPE)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTORCC ON)
-add_library(SAXSsim STATIC SAXSsim.cpp ../QT/QtMessenger.h)
-target_link_libraries(SAXSsim ${Boost_LIBRARIES})
-target_link_libraries(SAXSsim ${ITK_LIBRARIES} )
 
 IF(ENABLE_QT)
+    add_library(SAXSsim STATIC SAXSsim.cpp ../QT/QtMessenger.h)
     SET( Qt5Widgets_LIBRARIES ${Qt5Widgets_LIBRARIES} PARENT_SCOPE )
     SET( Qt5PrintSupport_LIBRARIES ${Qt5PrintSupport_LIBRARIES} PARENT_SCOPE )
     SET( Qt5Svg_LIBRARIES ${Qt5Svg_LIBRARIES} PARENT_SCOPE )
@@ -20,7 +18,12 @@ IF(ENABLE_QT)
         ${Qt5Svg_LIBRARIES}
         ${Qt5DBus_LIBRARIES}
         )
+else()
+    add_library(SAXSsim STATIC SAXSsim.cpp)
 ENDIF()
+
+target_link_libraries(SAXSsim ${Boost_LIBRARIES})
+target_link_libraries(SAXSsim ${ITK_LIBRARIES} )
 
 add_executable(SAXSsim.exe main.cpp)
 # include_directories(${IPP_LIB_FOLDER})

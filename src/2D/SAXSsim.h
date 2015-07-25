@@ -84,16 +84,13 @@ public:
     ComplexTypeP  & FFT();
     RealTypeP & FFTModulusSquare();
     void SaveIntensityProfile(const std::string & fname);
-    std::string GeneratePDF(
-            const std::string & resultfile,
-            double nm_per_pixel_resolution,
-            const std::string & scriptFile =
-            "../src/scripts/plotI-q_PDF.R");
-    std::string GenerateSVG(
+    void GeneratePlotVisualizationFile(
             const std::string & resultInputFile,
-            double nm_per_pixel_resolution,
+            double nm_per_pixel_resolution=1.0,
+            const std::string & filetype = "",
+            const std::string & outputFile = "",
             const std::string & scriptFile =
-            "../src/scripts/plotI-q_SVG.R");
+            "./plotI-q.R");
     void WriteFFT( const RealTypeP & inputFFT,  const std::string &outputFilename);
     OutputTypeP RescaleFFT(const RealTypeP& inputFFT);
 

@@ -29,6 +29,7 @@
 #include <itkLogImageFilter.h>
 #include <itkCastImageFilter.h>
 #include "itkIntensityWindowingImageFilter.h"
+#include <itkImageRegionConstIteratorWithIndex.h>
 #include <QuickView.h>
 #include <stdexcept>
 #include <iostream>
@@ -240,51 +241,35 @@ void SAXSsim::ScaleForVisualization()
 
     LogFFTModulusSquare(fftModulusSquare_);
 }
-std::string SAXSsim::GeneratePDF(
+
+/**
+ * @brief Use R script to generate a file containing the plot
+ * visualization.
+ *
+ * @param resultInputFile Input Data (I-q)
+ * @param nm_per_pixel_resolution Resolution of the image in nanometers per pixel.
+ * @param scriptFile Rscript file that generates the plot.
+ * @param outputFile Output file.
+ * @param filetype svg, pdf, or tikz (tex).
+ *
+ * @return The output file.
+ */
+void SAXSsim::GeneratePlotVisualizationFile(
         const string & resultInputFile,
         double nm_per_pixel_resolution,
+        const string & filetype,
+        const string & outputFile,
         const string & scriptFile){
+
     // Execute R script to generate pdf with the plot.
-    string command{scriptFile + " " + resultInputFile + " " + std::to_string(nm_per_pixel_resolution)};
+    string command{scriptFile + " --input=" + resultInputFile + " --nm_per_pixel=" + std::to_string(nm_per_pixel_resolution)};
+    if (outputFile!="")
+        command += " --output=" + outputFile;
+    if (filetype!="")
+        command += " --filetype=" + filetype;
     cout << "executing command: " << command << endl;
     system(command.c_str());
-
-    // // Open generated pdf.
-    // int lastindex = resultInputFile.find_last_of(".");
-    // string filename_no_ext = resultInputFile.substr(0, lastindex);
-    // string pdf{"evince " + filename_no_ext + ".pdf"};
-    // cout << "opening pdf: " << pdf << endl;
-    // system(pdf.c_str());
-
-    std::size_t found = resultInputFile.find_last_of("/\\");
-    std::string path = resultInputFile.substr(0,found);
-    std::string file = resultInputFile.substr(found+1);
-    int lastindex = file.find_last_of(".");
-    string filename_no_ext = file.substr(0, lastindex);
-    return  path + "/" + "pdf" + "/" +  filename_no_ext + ".svg";
 }
-
-std::string SAXSsim::GenerateSVG(
-        const string & resultInputFile,
-        double nm_per_pixel_resolution,
-        const string & scriptFile){
-    // Execute R script to generate pdf with the plot.
-    string command{scriptFile + " " + resultInputFile + " " + std::to_string(nm_per_pixel_resolution)};
-    cout << "executing command: " << command << endl;
-    system(command.c_str());
-
-    // int lastindex = resultInputFile.find_last_of(".");
-    // string filename_no_ext = resultInputFile.substr(0, lastindex);
-    // The output after the RScript set in the default script.
-    std::size_t found = resultInputFile.find_last_of("/\\");
-    std::string path = resultInputFile.substr(0,found);
-    std::string file = resultInputFile.substr(found+1);
-    int lastindex = file.find_last_of(".");
-    string filename_no_ext = file.substr(0, lastindex);
-    return  path + "/" + "svg" + "/" +  filename_no_ext + ".svg";
-
-}
-#include <itkImageRegionConstIteratorWithIndex.h>
 SAXSsim::RealTypeP & SAXSsim::FFTModulusSquare(){
 
     typedef itk::ComplexToModulusImageFilter<ComplexImageType, RealImageType> FftModulusType;

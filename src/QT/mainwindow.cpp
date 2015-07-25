@@ -247,24 +247,35 @@ void MainWindow::createRMenus()
     newRAct->setStatusTip(tr("Create a R plot from sim"));
     connect(newRAct, SIGNAL(triggered()), this, SLOT(drawRPlot()));
 
-
     ui->toolBar->addAction(newRAct);
 }
 void MainWindow::drawRPlot()
 {
     auto &sim = currentSim_;
-    auto fileNameSVG_ = sim->GenerateSVG(sim->GetOutputName(),0.86);
+    sim->GeneratePlotVisualizationFile(
+                sim->GetOutputName(),
+                0.86,
+                "svg");
+
+    // Change extension.
+    string fileNameSVG;
+    size_t lastdot = sim->GetOutputName().find_last_of(".");
+    if (lastdot == std::string::npos){
+        fileNameSVG = sim->GetOutputName() + ".svg";
+    } else {
+        fileNameSVG = sim->GetOutputName().substr(0, lastdot) + ".svg";
+    }
     ui->svgWidget->load(
-            filterSVGFile(fileNameSVG_, "./test1.svg"));
+            filterSVGFile(fileNameSVG));
     ui->svgWidget->show();
 }
 
-QString MainWindow::filterSVGFile(const std::string & inputSVGFile, const std::string &outputFile) {
+QString MainWindow::filterSVGFile(const std::string & inputSVGFile) {
     // cairoDevice creates richer SVG than Qt can display
     // but per Michaele Lawrence, a simple trick is to s/symbol/g/ which we do here
     QFile infile(QString::fromStdString(inputSVGFile));
     infile.open(QFile::ReadOnly);
-    QFile outfile(QString::fromStdString(outputFile));
+    QFile outfile(QString::fromStdString(inputSVGFile + "tmp"));
     outfile.open(QFile::WriteOnly | QFile::Truncate);
 
     QTextStream in(&infile);
@@ -279,6 +290,8 @@ QString MainWindow::filterSVGFile(const std::string & inputSVGFile, const std::s
     }
     infile.close();
     outfile.close();
-    return QString::fromStdString(outputFile);
+    infile.remove();
+    outfile.rename(infile.fileName());
+    return outfile.fileName();
 }
 #endif

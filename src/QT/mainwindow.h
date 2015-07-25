@@ -111,8 +111,7 @@ private:
     QAction *newRAct;
     void createRMenus();
     QString filterSVGFile(
-            const std::string & inputSVGFile,
-            const std::string &outputFile);
+            const std::string & inputSVGFile);
 private slots:
     void drawRPlot();
 #endif

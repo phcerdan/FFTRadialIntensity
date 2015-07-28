@@ -16,38 +16,39 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef NEWDIALOG_H_
-#define NEWDIALOG_H_
+#ifndef RDIALOG_H_
+#define RDIALOG_H_
 
-#include "ui_newdialog.h"
-#include <QPlainTextEdit>
+#include "ui_rdialog.h"
 #include <QDialog>
-#include <QFileDialog>
+#include <string>
 
 namespace Ui
 {
-class NewDialog;
+class RDialog;
 }
 
-class NewDialog : public QDialog
+class RDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit NewDialog(QWidget *parent = 0);
-    virtual  ~NewDialog();
+    explicit RDialog(QWidget *parent = 0);
+    virtual  ~RDialog();
+    void setOutputTextEdit(const std::string & );
+    double nm_per_pixel_{1.00};
+    QString outputFile_;
+    std::string formatString_{"svg"};
 public slots:
-    void browseOpenFile();
     void browseSaveFile();
+    void formatChanged();
     void on_acceptedSettings();
 signals:
-    void newSimFromDialog(std::string imgName, std::string outputPlotName, int num_threads, bool saveToFile );
-public:
-    QString inputImage;
-    QString outputPlot;
-    bool saveToFile;
-    int numThreads;
+    void newRplotFromDialog(
+            double nm_per_pixel,
+            std::string format,
+            std::string outputFile);
 private:
-    Ui::NewDialog *ui;
+    Ui::RDialog *ui;
 };
 #endif

@@ -24,12 +24,12 @@ NewDialog::NewDialog(QWidget *parent) :
     ui(new Ui::NewDialog)
 {
     ui->setupUi(this);
-    connect(ui->pushButton,SIGNAL(clicked()), this, SLOT(openInputImage()));
-    connect(ui->pushButton_2,SIGNAL(clicked()), this, SLOT(selectOutputPlot()));
+    connect(ui->inputBrowseButton,SIGNAL(clicked()), this, SLOT(browseOpenFile()));
+    connect(ui->outputBrowseButton,SIGNAL(clicked()), this, SLOT(browseSaveFile()));
     /// Gray out if parallel is not enabled.
 #ifndef ENABLE_PARALLEL
-    ui->spinBox->setDisabled(true);
-    ui->label_2->setDisabled(true);
+    ui->spinBoxThreads->setDisabled(true);
+    ui->labelThreads->setDisabled(true);
 #endif
     /// On accept send signal(via SLOT) to parent MainWindow.
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(on_acceptedSettings()));
@@ -43,27 +43,27 @@ NewDialog::~NewDialog()
 /**
  * @brief Open a QFileDialog with open properties
  */
-void NewDialog::openInputImage()
+void NewDialog::browseOpenFile()
 {
 
     QFileDialog *fileDialog = new QFileDialog(this);
     QString fileName = fileDialog->getOpenFileName(this,tr("Image Path"), QDir::currentPath());
     delete fileDialog;
-    ui->plainTextEdit->setPlainText(fileName);
+    ui->inputTextEdit->setPlainText(fileName);
 
 }
 
 /**
  * @brief Open a QFileDialog with save properties.
  */
-void NewDialog::selectOutputPlot()
+void NewDialog::browseSaveFile()
 {
 
     QFileDialog *fileDialog = new QFileDialog(this);
     QString fileName = fileDialog->getSaveFileName(this,"Save output .plot",
             QDir::currentPath(), tr("Plain text (*.plot)"));
     delete fileDialog;
-    ui->plainTextEdit_2->setPlainText(fileName);
+    ui->outputTextEdit->setPlainText(fileName);
 
 }
 
@@ -72,15 +72,15 @@ void NewDialog::selectOutputPlot()
  */
 void NewDialog::on_acceptedSettings()
 {
-    inputImage = ui->plainTextEdit->toPlainText();
-    outputPlot = ui->plainTextEdit_2->toPlainText();
-    saveToFile = ui->checkBox;
+    inputImage = ui->inputTextEdit->toPlainText();
+    outputPlot = ui->outputTextEdit->toPlainText();
+    saveToFile = ui->checkBoxSaveOutput;
 #ifdef ENABLE_PARALLEL
-    numThreads = ui->spinBox->value();
+    numThreads = ui->spinBoxThreads->value();
 #else
-    ui->spinBox->setEnabled(false);
+    ui->spinBoxThreads->setEnabled(false);
     // The default is 1.
-    numThreads = ui->spinBox->value();
+    numThreads = ui->spinBoxThreads->value();
 #endif
 
 

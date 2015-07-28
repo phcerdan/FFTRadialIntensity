@@ -6,27 +6,39 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
-    <height>800</height>
+    <width>1097</width>
+    <height>810</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_4">
-    <item row="1" column="0">
-     <widget class="QSplitter" name="splitter_2">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QSplitter" name="splitter">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>2</number>
        </property>
-       <widget class="QVTKWidget" name="qvtkWidget"/>
-       <widget class="QVTKWidget" name="qvtkWidget_2"/>
-       <widget class="QSvgWidget" name="svgWidget"/>
+       <widget class="QVTKWidget" name="qvtkWidgetInput">
+        <attribute name="title">
+         <string>InputImage</string>
+        </attribute>
+       </widget>
+       <widget class="QVTKWidget" name="qvtkWidgetFFT">
+        <attribute name="title">
+         <string>FFT</string>
+        </attribute>
+       </widget>
+       <widget class="QSvgWidget" name="svgWidgetRplot">
+        <attribute name="title">
+         <string>Rplot</string>
+        </attribute>
+       </widget>
       </widget>
       <widget class="QScrollArea" name="scrollArea">
        <property name="sizePolicy">
@@ -55,8 +67,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>640</width>
-          <height>80</height>
+          <width>1077</width>
+          <height>72</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
@@ -76,7 +88,7 @@
           <number>1</number>
          </property>
          <item row="0" column="0">
-          <widget class="QPlainTextEdit" name="textEdit"/>
+          <widget class="QPlainTextEdit" name="textEditConsole"/>
          </item>
         </layout>
        </widget>
@@ -90,13 +102,16 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>660</width>
-     <height>25</height>
+     <width>1097</width>
+     <height>19</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
+   <property name="contextMenuPolicy">
+    <enum>Qt::PreventContextMenu</enum>
+   </property>
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -110,7 +125,7 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>true</bool>
+    <bool>false</bool>
    </attribute>
   </widget>
   <action name="actionSim1">
@@ -125,9 +140,14 @@
    <extends>QWidget</extends>
    <header>QVTKWidget.h</header>
   </customwidget>
+  <customwidget>
+   <class>QSvgWidget</class>
+   <extends>QWidget</extends>
+   <header>qsvgwidget.h</header>
+  </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../repository_local/biopolymers-TEM-SAXS-comparisson/FFT-from-image-compute-radial-intensity/src/QT/resources.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections/>
 </ui>

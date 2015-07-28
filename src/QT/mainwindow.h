@@ -37,7 +37,6 @@
 #include <vtkImageActor.h>
 #include <vtkInteractorStyleImage.h>
 #include "WorkerSim.h"
-#include "newdialog.h"
 #include <QSvgWidget>
 
 namespace Ui
@@ -85,12 +84,13 @@ private slots:
     void renderInputTypeImage();
     void writeFFTImageToDisk();
     void renderFFTWindowed();
-    void ShowContextMenu2(const QPoint& pos);
+    void ShowContextMenuQVTKFFT(const QPoint& pos);
     void workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim);
 
 private:
     QVector<std::shared_ptr<SAXSsim>> simVector;
     QVector<vtkSmartPointer<vtkRenderWindow>> renWinVector;
+    QVector<std::string> svgFileNamesVector;
     QHash<int, QAction*> simButtonMap;
     SAXSsim* currentSim_;
 
@@ -100,7 +100,6 @@ private:
     void createContextMenus();
     void createSimButton();
 
-    NewDialog *newDialog;
     QToolBar *fileToolBar;
     QAction *newSimAct;
     QAction *exitAct;
@@ -113,7 +112,12 @@ private:
     QString filterSVGFile(
             const std::string & inputSVGFile);
 private slots:
-    void drawRPlot();
+    void createRDialog();
+    void drawRPlot(
+            double nm_per_pixel,
+            std::string format,
+            std::string outputFile);
+    void ShowContextMenuRplot(const QPoint& pos);
 #endif
 };
 #endif /* MAINWINDOW_H_ */

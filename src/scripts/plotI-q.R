@@ -63,7 +63,8 @@ if(is.null(argsL$filetype)){
 }
 cat(paste("--filetype=",argsL$filetype, "\n", sep=""));
 
-if(is.null(argsL$output)){
+#argsL$="output" if set to ="" or =(blankSpace)
+if(is.null(argsL$output) || argsL$output=="output") {
     argsL$output= paste(file_path_sans_ext(argsL$input), argsL$filetype, sep=".")
     cat(paste("--output NOT set, default to", argsL$output,"\n"))
 }

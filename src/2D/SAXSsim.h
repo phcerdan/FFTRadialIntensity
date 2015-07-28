@@ -86,8 +86,8 @@ public:
     void SaveIntensityProfile(const std::string & fname);
     void GeneratePlotVisualizationFile(
             const std::string & resultInputFile,
-            double nm_per_pixel_resolution=1.0,
-            const std::string & filetype = "",
+            double nm_per_pixel_resolution = 1.0,
+            const std::string & filetype   = "",
             const std::string & outputFile = "",
             const std::string & scriptFile =
             "./plotI-q.R");

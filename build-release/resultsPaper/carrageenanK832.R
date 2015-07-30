@@ -42,7 +42,7 @@ fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carragee
 fileSaxsShort = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_K/1car30KCl10A_1243_short.dat"
 # script.dir <- dirname(sys.frame(1)$ofile)
 # setwd(this.dir)
-source ('~/repository_local/tem-saxs/src/scripts/mergeSaxsData.R')
+source ('~/repository_local/biopolymers-TEM-SAXS-comparisson/FFT-from-image-compute-radial-intensity/src/scripts/mergeSaxsData.R')
 dmerged = mergeSaxs(fileSaxsLong, fileSaxsShort, 5);
 dmerged$I = dmerged$I * 10^7.3;
 dmerged$q = dmerged$q * 10; # Change from A to nm
@@ -55,12 +55,27 @@ filenameNoExtension = basename(file_path_sans_ext(filename));
 eps = 0.02;
 qbad = 10^-1.3;
 dbad = subset(dmerged, subset= dmerged$q < qbad + eps * qbad & dmerged$q > qbad - eps * qbad);
+#READ CRYO DATA
+fileCryo = "./cryo_carrK001_13b.plot"
+dataCryo = read.table(fileCryo, col.names=c("d", "I"), row.names=NULL);
+headerCryo = scan(file(fileCryo), what="character", nlines=3)
+fnameCryo = unlist(strsplit(headerCryo[2], "="))[2];
+NxCryo = as.numeric(unlist(strsplit(headerCryo[4], "="))[2]);
+NyCryo = as.numeric(unlist(strsplit(headerCryo[6], "="))[2]);
+nm_per_pixelCryo = 6.25;
+nm_per_pixelCryo = as.numeric(nm_per_pixelCryo);
+dfCryo = 1/nm_per_pixelCryo;
+qCryo = dataCryo[,"d"] * dfCryo / NxCryo;
+ICryo = dataCryo[,"I"];
+datCryo = data.frame(qCryo,ICryo);
+#
 p <-ggplot()+
     theme_bw() +
     # remove minor ticks
     theme(panel.grid.minor = element_blank()) +
-    # geom_line(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I)) +
-    geom_point(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I), size=1) +
+    # geom_point(data = datf_trim, aes(x=datf_trim$q, y=datf_trim$I), size=1) +
+    geom_point(data = datf, aes(x=datf$q, y=datf$I), size=1) +
+    geom_point(data = datCryo, aes(x=datCryo$q, y=datCryo$I), size=1) +
     geom_line(data = dmerged, colour="blue", aes(x = dmerged$q, y = dmerged$I)) +
     labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),

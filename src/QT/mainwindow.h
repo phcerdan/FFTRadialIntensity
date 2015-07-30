@@ -24,6 +24,7 @@
 #include <memory>
 #include <QMainWindow>
 #include <QVector>
+#include <QToolButton>
 #include <QString>
 #include <QDialog>
 #include <itkImageToVTKImageFilter.h>
@@ -77,6 +78,7 @@ public:
 
 signals:
     void runWorkerSim(std::string, std::string, int, bool );
+    void currentSimSwitch(size_t);
     void runWorkerSimWithMessenger(std::string, std::string, int, bool, QPlainTextEdit* );
 private slots:
     void newSim(std::string imgName, std::string outputPlotName, int num_threads = 1, bool saveToFile = 1);
@@ -86,12 +88,16 @@ private slots:
     void renderFFTWindowed();
     void ShowContextMenuQVTKFFT(const QPoint& pos);
     void workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim);
+    void on_currentSimSwitch(size_t);
 
 private:
     QVector<std::shared_ptr<SAXSsim>> simVector;
-    QVector<vtkSmartPointer<vtkRenderWindow>> renWinVector;
+    // QVector<vtkSmartPointer<vtkRenderer>> renInputVector;
+    // QVector<vtkSmartPointer<vtkRenderer>> renFFTVector;
     QVector<std::string> svgFileNamesVector;
-    QHash<int, QAction*> simButtonMap;
+    QToolButton* simToolButton;
+    QMenu* simActiveMenu;
+    QHash<int, QAction*> simActionMap;
     SAXSsim* currentSim_;
 
     void createActions();
@@ -99,8 +105,8 @@ private:
     void createStatusBar();
     void createContextMenus();
     void createSimButton();
+    void addSimAction();
 
-    QToolBar *fileToolBar;
     QAction *newSimAct;
     QAction *exitAct;
     QThread *thread_      = 0; // TODO:Use global pool thread?

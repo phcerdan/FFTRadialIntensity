@@ -24,26 +24,61 @@
 #include <QVector>
 using namespace std;
 
+void MainWindow::on_currentSimSwitch(size_t element)
+{
+    // Re-render widgets.
+    // ui->qvtkWidgetInput->SetRenderWindow(renInputVector[element]->GetRenderWindow());
+    // renInputVector[element]->Render();
+    // ui->qvtkWidgetFFT->GetRenderWindow()->AddRenderer(renFFTVector[element]);
+    renderInputTypeImage();
+    renderFFTWindowed();
+#ifdef ENABLE_R
+    // If every sim has associated an RPlot;
+    if(svgFileNamesVector.size() == simVector.size())
+    {
+        auto qSvgFile = QString::fromStdString(svgFileNamesVector[element]);
+        ui->svgWidgetRplot->load(qSvgFile);
+    }
+
+#endif
+
+}
+void MainWindow::addSimAction()
+{
+
+    size_t elements = simActionMap.count() ;
+    simActionMap.insert(elements,
+
+            new QAction(QIcon(":/resources/network-64.png"), QString::number(elements), this)
+            );
+    auto &simAction = simActionMap[elements];
+    simActiveMenu->addAction(simAction);
+
+    connect(simAction, &QAction::triggered,
+            [=](){
+            currentSim_ = simVector[elements].get();
+            emit(currentSimSwitch(elements));
+            cout << elements <<endl;
+            });
+}
 void MainWindow::createSimButton()
 {
 
-    size_t elements = 0;
-    if (!simButtonMap.isEmpty())
-    {
-        elements = simButtonMap.count() ;
+    if (simActionMap.isEmpty()) {
+        simActiveMenu = new QMenu;
+        addSimAction();
+        simToolButton = new QToolButton;
+        simToolButton->setPopupMode(QToolButton::MenuButtonPopup);
+        simToolButton->setMenu(simActiveMenu);
+        auto &simAction = simActionMap[0];
+        simToolButton->setDefaultAction(simAction);
+
+        ui->toolBar->addWidget(simToolButton);
     }
-    // index starts at 0 to match vector.
-    simButtonMap.insert(elements,
-            new QAction(QIcon(":/resources/one.png"), tr("&Select existing Simulation"), this)
-            );
-    auto &simButton = simButtonMap[elements];
-    simButton->setStatusTip(tr("Select simulation"));
-    ui->toolBar->addAction(simButton);
-    connect(simButton, &QAction::triggered,
-            [=](){
-            currentSim_ = simVector[elements].get();
-            cout << elements <<endl;
-            });
+    else {
+        addSimAction();
+    }
+    // simToolButton->setStatusTip(tr("Select simulation"));
 }
 void MainWindow::createNewDialog()
 {
@@ -133,17 +168,37 @@ void MainWindow::renderInputTypeImage()
     actor->GetMapper()->SetInputData(connector->GetOutput());
     auto renderer = vtkSmartPointer<vtkRenderer>::New();
     renderer->AddActor(actor);
-    renderer->ResetCamera();
-    renWinVector.push_back(vtkSmartPointer<vtkRenderWindow>::New());
-    auto &renWin = renWinVector.back();
-    renWin->AddRenderer(renderer);
-
-    renWin->SetInteractor(ui->qvtkWidgetInput->GetInteractor());
     auto style =
         vtkSmartPointer<vtkInteractorStyleImage>::New();
-    renWin->GetInteractor()->SetInteractorStyle(style);
-    ui->qvtkWidgetInput->SetRenderWindow(renderer->GetRenderWindow());
-    renderer->Render();
+    ui->qvtkWidgetInput->GetRenderWindow()->AddRenderer(renderer);
+    ui->qvtkWidgetInput->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
+    // Old style:
+    // ui->qvtkWidgetInput->SetRenderWindow(renderer->GetRenderWindow());
+    // renderer->Render();
+    renderer->ResetCamera();
+    ui->qvtkWidgetInput->GetRenderWindow()->Render();
+
+}
+void MainWindow::renderFFTWindowed()
+{
+    auto &sim = currentSim_;
+    auto connector   = ConnectorRealType::New();
+    m_fftVisualizationReal  =
+        sim->WindowingFFT(
+                sim->fftVisualization_, sim->intensitiesVisualization_[1], 255
+                );
+    connector->SetInput(m_fftVisualizationReal);
+    connector->Update();
+    auto actor = vtkSmartPointer<vtkImageActor>::New();
+    actor->GetMapper()->SetInputData(connector->GetOutput());
+    auto renderer = vtkSmartPointer<vtkRenderer>::New();
+    renderer->AddActor(actor);
+    auto style =
+        vtkSmartPointer<vtkInteractorStyleImage>::New();
+    ui->qvtkWidgetFFT->GetRenderWindow()->AddRenderer(renderer);
+    ui->qvtkWidgetFFT->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
+    renderer->ResetCamera();
+    ui->qvtkWidgetFFT->GetRenderWindow()->Render();
 
 }
 void MainWindow::writeFFTImageToDisk()
@@ -171,33 +226,6 @@ void MainWindow::writeFFTImageToDisk()
     }
 
 }
-void MainWindow::renderFFTWindowed()
-{
-    auto &sim = currentSim_;
-    auto connector   = ConnectorRealType::New();
-    m_fftVisualizationReal  =
-        sim->WindowingFFT(
-                sim->fftVisualization_, sim->intensitiesVisualization_[1], 255
-                );
-    connector->SetInput(m_fftVisualizationReal);
-    connector->Update();
-    auto actor = vtkSmartPointer<vtkImageActor>::New();
-    actor->GetMapper()->SetInputData(connector->GetOutput());
-    auto renderer = vtkSmartPointer<vtkRenderer>::New();
-    renderer->AddActor(actor);
-    renderer->ResetCamera();
-    renWinVector.push_back(vtkSmartPointer<vtkRenderWindow>::New());
-    auto &renWin = renWinVector.back();
-    renWin->AddRenderer(renderer);
-
-    renWin->SetInteractor(ui->qvtkWidgetFFT->GetInteractor());
-    auto style =
-        vtkSmartPointer<vtkInteractorStyleImage>::New();
-    renWin->GetInteractor()->SetInteractorStyle(style);
-    ui->qvtkWidgetFFT->SetRenderWindow(renderer->GetRenderWindow());
-    renderer->Render();
-
-}
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -207,6 +235,8 @@ MainWindow::MainWindow(QWidget *parent) :
     createToolBars();
     createStatusBar();
     createContextMenus();
+    simToolButton = nullptr;
+    simActiveMenu = nullptr;
     ui->qvtkWidgetInput->hide();
     ui->qvtkWidgetFFT->hide();
     ui->svgWidgetRplot->hide();
@@ -215,12 +245,21 @@ MainWindow::MainWindow(QWidget *parent) :
     createRMenus();
     newRAct->setEnabled(false);
 #endif
+    connect(this, &MainWindow::currentSimSwitch,
+            this, &MainWindow::on_currentSimSwitch);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    for(QAction* & act : simButtonMap.values())
+    delete newSimAct;
+    delete exitAct;
+    if(simToolButton!=nullptr) delete simToolButton;
+    if(simActiveMenu!=nullptr) delete simActiveMenu;
+#ifdef ENABLE_R
+    delete newRAct;
+#endif
+    for(QAction* & act : simActionMap.values())
     {
         delete act;
     }
@@ -288,7 +327,6 @@ void MainWindow::drawRPlot(
 {
     auto &sim = currentSim_;
 
-
     string modString;
     size_t lastdot = outputRFile.find_last_of(".");
     if (lastdot == std::string::npos){
@@ -326,10 +364,11 @@ void MainWindow::drawRPlot(
         svgString = modString;
     }
 
+    svgFileNamesVector.push_back(svgString);
     ui->svgWidgetRplot->load(
             filterSVGFile(svgString));
-    svgFileNamesVector.push_back(svgString);
     ui->svgWidgetRplot->show();
+    ui->tabWidget->setCurrentWidget(ui->svgWidgetRplot);
 
 }
 

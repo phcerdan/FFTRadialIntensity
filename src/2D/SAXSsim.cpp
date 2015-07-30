@@ -28,6 +28,7 @@
 #include <itkPowImageFilter.h>
 #include <itkLogImageFilter.h>
 #include <itkCastImageFilter.h>
+#include "itkCropImageFilter.h"
 #include "itkIntensityWindowingImageFilter.h"
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <QuickView.h>
@@ -151,12 +152,42 @@ SAXSsim::InputTypeP  SAXSsim::Read(){
     InitializeSizeMembers();
     return inputImg_;
 }
+void SAXSsim::CropImage(SAXSsim::InputTypeP& inputImage)
+{
 
+    auto region = inputImage->GetLargestPossibleRegion();
+    auto x      = region.GetSize()[0];
+    auto y      = region.GetSize()[1];
+
+    typedef itk::CropImageFilter<InputImageType, InputImageType > CropFilterType;
+    auto cropFilter = CropFilterType::New();
+    cropFilter->SetInput(inputImage);
+    int cropDim = (int)x - (int)y;
+    InputImageType::SizeType cropSize;
+    // Assume even size in all dim.
+    if (cropDim < 0){
+        cropSize[0] = 0;
+        cropSize[1] = -cropDim/2;
+    } else {
+        cropSize[0] = cropDim/2;
+        cropSize[1] = 0;
+    }
+    cropFilter->SetBoundaryCropSize(cropSize);
+    cropFilter->Update();
+    inputImage = cropFilter->GetOutput();
+    InitializeSizeMembers();
+    std:: cout << "Crop to: [ " <<  x - 2*cropSize[0] << ", " << y - 2*cropSize[1] << " ] " << std::endl;
+}
 void SAXSsim::CheckEqualDimension(){
     auto region = inputImg_->GetLargestPossibleRegion();
     auto x      = region.GetSize()[0];
     auto y      = region.GetSize()[1];
-    if(x != y) throw runtime_error("Input Image must have equal dimension in x and y");
+
+    if(x != y) {
+        std:: cout << "Image with dim: [ " << x << ", " << y << " ] cropped to have equal dimensions." << std::endl;
+        CropImage(inputImg_) ;
+        // throw runtime_error("Input Image must have equal dimension in x and y");
+    }
 }
 
 void SAXSsim::SaveIntensityProfile(const string & fname){

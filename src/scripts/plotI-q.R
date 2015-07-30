@@ -103,7 +103,7 @@ dmax = as.integer(Nmin/2)
 q = data[,"d"] * df / Nmin;
 I = data[,"I"];
 
-# if(q[1] == 0) I[1]=I[2]*10 # for correct I plot limits
+# I[0]=I[1] # for correct I plot limits
 datf = data.frame(q,I);
 
 # #ADD SAXS DATA

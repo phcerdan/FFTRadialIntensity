@@ -70,6 +70,7 @@ public:
     std::string GetOutputName(){ return outputName_;};
 protected:
     void CheckEqualDimension();
+    void CropImage(InputTypeP& inputImage);
     void InitializeSizeMembers();
 
     std::string inputName_;

@@ -129,7 +129,7 @@ p <-ggplot()+
     scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x, n=3),
                      labels = trans_format("log10", math_format(10^.x))
                      ) +
-    annotation_logticks(SCALED=FALSE)
+    annotation_logticks(scaled = FALSE)
 
 #####tikzDevice
 # library("tikzDevice")

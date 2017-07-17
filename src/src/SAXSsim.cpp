@@ -223,7 +223,7 @@ void SAXSsim::WriteFFT( const RealTypeP & fftInput, const string &outputFilename
 {
     // Cast to float (.tif)
     typedef float FloatPixelType;
-    typedef itk::Image<OutputPixelType, 2> FloatImageType;
+    typedef itk::Image<FloatPixelType, 2> FloatImageType;
     typedef itk::RescaleIntensityImageFilter<RealImageType, FloatImageType > RescaleFilter;
     auto rescaleFilter = RescaleFilter::New();
     rescaleFilter->SetInput(fftInput);

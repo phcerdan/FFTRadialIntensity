@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+source('readIQdata.R')
 
 args = commandArgs(trailingOnly=TRUE);
 #Default setting when no argument:
@@ -8,7 +9,7 @@ if(length(args) < 1){
 # Help argument:
 helpString = '
       Plot I vs q
-      
+
       Arguments:
       --input=/path/to/file     - Path to input I-q plot file.
              File must be 2 columns with a header:
@@ -16,7 +17,6 @@ helpString = '
              #Nx=x
              #Ny=y
       --nm_per_pixel=1.0        - Float. Image Resolution, Nanometers per pixel
-      
       --output=/path/to/out.svg - File output.Accepts:
       --filetype=svg            - Output format
                                     (*) svg
@@ -79,32 +79,11 @@ if(file_ext(argsL$output) == "" ) {
 
 cat(paste("--output=",argsL$output, "\n", sep=""));
 
-#Read data.
-data = read.table(filename, col.names=c("d", "I"), row.names=NULL);
-#Read header.
-header = scan(file(filename), what="character", nlines=3)
-fname = unlist(strsplit(header[2], "="))[2];
-Nx = as.numeric(unlist(strsplit(header[4], "="))[2]);
-Ny = as.numeric(unlist(strsplit(header[6], "="))[2]);
-cat(paste("Nx =", Nx," ", "Ny =", Ny, "\n"))
 nm_per_pixel = as.numeric(argsL$nm_per_pixel);
 cat(paste("nm_per_pixel =",nm_per_pixel, "\n"));
 
-dx = nm_per_pixel;
-dy = nm_per_pixel;
-dfx = 1.0/(dx);
-dfy = 1.0/(dy);
-df = min(dfx, dfy);
-# df = sqrt(dfx*dfx + dfy*dfy);
-# Nsize = sqrt(Nx^2 + Ny^2)
-# df = (1.0/Nsize) * (1.0/dx);
-Nmin = min(Nx,Ny);
-dmax = as.integer(Nmin/2)
-q = data[,"d"] * df / Nmin;
-I = data[,"I"];
-
-# I[0]=I[1] # for correct I plot limits
-datf = data.frame(q,I);
+data_all = readIQdata(filename, nm_per_pixel);
+# data_all = merge(data_all,readIQdata(filenameOther, nm_per_pixel, "Other"), by="q")
 
 # #ADD SAXS DATA
 # fileSaxs = "/home/phc/Dropbox/Shared-Geelong-Palmerston/pectin/Pectin1_acid/SAXS_1car200NaCl10A_1237_longMod.txt"
@@ -112,15 +91,19 @@ datf = data.frame(q,I);
 # qS = dataS[,"d"];
 # IS = dataS[,"I"]*10^11;
 # datafS = data.frame(qS,IS);
+# qS = dmerged[,"q"];
+# IS = dmerged[,"I"]*10^11;
+
 
 library("ggplot2")
 library("scales")
 filenameNoExtension = basename(file_path_sans_ext(filename));
-p <-ggplot()+
+p <-ggplot(data = data_all, aes(x = q)) +
     theme_bw() +
     # remove minor ticks
     theme(panel.grid.minor = element_blank()) +
-    geom_line(data = datf, aes(x=q, y=I)) +
+    geom_line(aes(y=I)) +
+    # geom_line(data = datf, aes(x=datf[,"q"], y=datf[,"I"])) +
     # geom_line(data = datafS, colour="blue", aes(x = qS, y = IS)) +
     labs(title=filenameNoExtension, x=" q $nm^{-1}$", y="I") +
     scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x, n=4),

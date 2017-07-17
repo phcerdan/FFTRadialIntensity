@@ -117,9 +117,6 @@ void MainWindow::newSim(string imgName, string outputPlotName, int num_threads, 
     qRegisterMetaType<std::shared_ptr<SAXSsim> >();;
     connect(this, &MainWindow::runWorkerSim,
             workerSim_, &WorkerSim::runSim);
-    connect(this, &MainWindow::runWorkerSimWithMessenger,
-            workerSim_, &WorkerSim::runSimWithMessenger);
-
     connect(workerSim_, &WorkerSim::onFinishRun,
             this,&MainWindow::workerSimHasFinished, Qt::BlockingQueuedConnection) ;
 
@@ -130,8 +127,8 @@ void MainWindow::newSim(string imgName, string outputPlotName, int num_threads, 
     thread_->start();
 
     newSimAct->setEnabled(false);
-    // emit(this->runWorkerSim(imgName, outputPlotName, num_threads, saveToFile));
-    emit(this->runWorkerSimWithMessenger(imgName, outputPlotName, num_threads, saveToFile, ui->textEditConsole));
+    emit(this->runWorkerSim(imgName, outputPlotName, num_threads, saveToFile));
+    // emit(this->runWorkerSimWithMessenger(imgName, outputPlotName, num_threads, saveToFile, ui->textEditConsole));
 
 }
 

@@ -19,7 +19,7 @@
 #ifndef MAINWINDOW_H_
 #define MAINWINDOW_H_
 
-#include <../2D/SAXSsim.h>
+#include "SAXSsim.h"
 #include <string>
 #include <memory>
 #include <QMainWindow>

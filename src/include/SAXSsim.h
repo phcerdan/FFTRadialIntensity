@@ -32,9 +32,6 @@
 #include <omp.h>
 #endif
 
-#ifdef ENABLE_QT
-#include "../QT/QtMessenger.h"
-#endif
 class SAXSsim
 {
 public:
@@ -56,11 +53,7 @@ public:
     using Intensities =  std::vector<std::vector<double> > ;
 
 public:
-#ifdef ENABLE_QT
-    SAXSsim(){m_messenger = new QtMessenger;}
-#else
     SAXSsim() = default;
-#endif
     SAXSsim(const std::string imgName, std::string outputPlotName = "",
              int num_threads = 1, bool saveToFile=1);
     SAXSsim(const std::string imgName, std::string outputPlotName,
@@ -91,7 +84,7 @@ public:
             const std::string & filetype   = "",
             const std::string & outputFile = "",
             const std::string & scriptFile =
-            "./plotI-q.R");
+            "scripts/plotI-q.R");
     void WriteFFT( const RealTypeP & inputFFT,  const std::string &outputFilename);
     OutputTypeP RescaleFFT(const RealTypeP& inputFFT);
 
@@ -120,9 +113,6 @@ public:
     std::pair< int, int> imgSize_;
     std::pair<bool, bool> evenFlag_;
     int fMax_{0};
-#ifdef ENABLE_QT
-    QtMessenger *m_messenger;
-#endif
     template<typename T = double>
     inline T Modulo (const T &a, const T& b){
         return sqrt(a*a + b*b);

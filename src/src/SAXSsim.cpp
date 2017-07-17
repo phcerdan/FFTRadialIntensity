@@ -41,9 +41,6 @@ SAXSsim::SAXSsim(string inputName, string outputName, int numThreads, bool saveT
         bool delayedInitialize) :
     inputName_{inputName}, outputName_{outputName},
     numThreads_{numThreads}, saveToFile_{saveToFile}
-#ifdef ENABLE_QT
-    , m_messenger{new QtMessenger}
-#endif
 {
 }
 
@@ -71,11 +68,6 @@ void SAXSsim::Initialize()
     std::string msg;
     msg = "Reading Image: " + inputName_;
     std::cout << msg << std::endl;
-#ifdef ENABLE_QT
-    QString Qmsg;
-    Qmsg = QString::fromStdString(msg);
-    m_messenger->message(Qmsg);
-#endif
 
     Read();
     FFT();
@@ -84,10 +76,6 @@ void SAXSsim::Initialize()
     // Compute Intensities
     msg = "Computing Intensity...";
     cout << msg << endl;
-#ifdef ENABLE_QT
-    Qmsg = QString::fromStdString(msg);
-    m_messenger->message(Qmsg);
-#endif
 #ifdef ENABLE_PARALLEL
     // int max_threads = omp_get_max_threads();
     int max_threads = omp_get_num_procs();
@@ -95,10 +83,6 @@ void SAXSsim::Initialize()
     omp_set_num_threads(numThreads_);
     msg = "Number of Threads: " + std::to_string(numThreads_)+ " MaxThreads: " + std::to_string(max_threads);
     cout << msg << endl;
-#ifdef ENABLE_QT
-    Qmsg = QString::fromStdString(msg);
-    m_messenger->message(Qmsg);
-#endif
     if(numThreads_>1) ParallelComputeRadialIntensity();
     else ComputeRadialIntensity();
 #else
@@ -111,10 +95,6 @@ void SAXSsim::Initialize()
     chrono::duration<double, ratio<60>> elapsed_time = end-start;
     msg = "Elapsed time: " +  std::to_string(elapsed_time.count()) + " min";
     cout << msg << endl;
-#ifdef ENABLE_QT
-    Qmsg = QString::fromStdString(msg);
-    m_messenger->message(Qmsg);
-#endif
     // Save results. Get the filename of input with no extension
     if (saveToFile_){
         boost::filesystem::path opath{inputName_};
@@ -124,10 +104,6 @@ void SAXSsim::Initialize()
             outputName_ = "./results/" + input_no_extension + ".plot";
         msg = "Output: I vs q. Saving as: " + outputName_;
         cout << msg << endl;
-#ifdef ENABLE_QT
-        Qmsg = QString::fromStdString(msg);
-        m_messenger->message(Qmsg);
-#endif
         SaveIntensityProfile(outputName_);
     }
 }

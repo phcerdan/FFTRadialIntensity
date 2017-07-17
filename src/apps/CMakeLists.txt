@@ -1,0 +1,5 @@
+add_subdirectory(RadialIntensity)
+add_subdirectory(SingleImagesFromMontage)
+if(ENABLE_QT)
+    add_subdirectory(Qt)
+endif()

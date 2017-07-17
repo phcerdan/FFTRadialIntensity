@@ -28,6 +28,7 @@
 *.project
 *.cproject
 /build/*
+/build*
 /build-release/*
 /build-debug/*
 /results/*

@@ -16,30 +16,21 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef WORKERSIM_H_
-#define WORKERSIM_H_
-#include <../2D/SAXSsim.h>
-#include <memory>
-#include <QtWidgets/QPlainTextEdit>
+#include "WorkerSim.h"
+using namespace std;
 
-Q_DECLARE_METATYPE(std::shared_ptr<SAXSsim> )
-Q_DECLARE_METATYPE(QString)
-Q_DECLARE_METATYPE(std::string)
-
-// Q_DECLARE_METATYPE(QPlainTextEdit*)
-class WorkerSim : public QObject
+void WorkerSim::runSim(std::string imgName, std::string outputPlotName,
+        int num_threads, bool saveToFile)
 {
-    Q_OBJECT
-public:
-signals:
-    void onFinishRun(std::shared_ptr<SAXSsim>);
-    void onFinish();
-public slots:
-    void runSimWithMessenger(std::string imgName, std::string outputPlotName,
-            int num_threads, bool saveToFile, QPlainTextEdit* box);
-    void runSim(std::string imgName, std::string outputPlotName,
-            int num_threads, bool saveToFile);
-public:
-    std::shared_ptr<SAXSsim> m_sim;
-};
-#endif
+    qRegisterMetaType<std::shared_ptr<SAXSsim> >();
+    qRegisterMetaType<QString>();
+    // qRegisterMetaType<QString*>();
+    try {
+        m_sim = make_shared<SAXSsim>(imgName, outputPlotName, num_threads, saveToFile);
+    } catch(std::exception &e){
+        std::cout << e.what() << std::endl;
+    }
+    emit(onFinishRun(m_sim));
+    emit(onFinish());
+
+}

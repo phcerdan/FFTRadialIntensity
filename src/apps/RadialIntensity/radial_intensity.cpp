@@ -19,6 +19,8 @@
 #include <iostream>
 #include "prog_options.h"
 #include "SAXSsim.h"
+#include "image_functions.h"
+#include "radial_intensity.h"
 using namespace std;
 int main(int argc, char* argv[]){
 

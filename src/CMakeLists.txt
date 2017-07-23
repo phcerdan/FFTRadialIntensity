@@ -7,9 +7,10 @@ if (UNIX)
         # list(APPEND CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
         # list(APPEND CMAKE_LINKER_FLAGS "-stdlib=libc++")
     # else()
-    list(APPEND CMAKE_CXX_FLAGS "-fmessage-length=0  -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fmessage-length=0  -Wall -Wextra")
     # endif()
 endif()
+message(status "** CMAKE_CXX_FLAGS:  ${CMAKE_CXX_FLAGS}")
 
 project(tem-saxs_p)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -18,6 +19,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(EXT_PROJECTS_DIR ${CMAKE_SOURCE_DIR}/external)
+
+
 find_package(ITK REQUIRED)
 include_directories(${ITK_INCLUDE_DIRS})
 include(${ITK_USE_FILE})
@@ -74,7 +78,10 @@ endif(ENABLE_QT)
 set(ENABLE_TEST "ON" CACHE BOOL "Perform Tests")
 
 if(ENABLE_TEST)
-    enable_testing()
+    # Includes Catch in the project:
+    add_subdirectory(${EXT_PROJECTS_DIR}/catch)
+    include_directories(SYSTEM ${CATCH_INCLUDE_DIR} ${COMMON_INCLUDES})
+    enable_testing(true)  # Enables unit-testing.
 endif()
 
 ## Common functions. Cannot create a library in subfolder and then share with other subdirectories.

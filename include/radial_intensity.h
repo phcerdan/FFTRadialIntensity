@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-// #include <boost/filesystem.hpp>
-// #include "itkFrequencyShiftedFFTLayoutImageRegionConstIteratorWithIndex.h"
 
 namespace radial_intensity
 {
@@ -14,6 +12,7 @@ namespace radial_intensity
 using IntensitiesAtRadius = std::vector<double>;
 using Intensities =  std::vector<IntensitiesAtRadius>;
 using FlattenIntensities =  std::vector<double>;
+
 struct HistoBins
 {
     double left;

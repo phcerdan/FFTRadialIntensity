@@ -3,8 +3,6 @@ SET( Qt5Widgets_LIBRARIES ${Qt5Widgets_LIBRARIES} PARENT_SCOPE )
 SET( Qt5PrintSupport_LIBRARIES ${Qt5PrintSupport_LIBRARIES} PARENT_SCOPE )
 SET( Qt5Svg_LIBRARIES ${Qt5Svg_LIBRARIES} PARENT_SCOPE )
 SET( Qt5DBus_LIBRARIES ${Qt5DBus_LIBRARIES} PARENT_SCOPE )
-SET( Qt5WebEngineWidgets_LIBRARIES ${Qt5WebEngineWidgets_LIBRARIES} PARENT_SCOPE )
-SET( Qt5WebChannel_LIBRARIES ${Qt5WebChannel_LIBRARIES} PARENT_SCOPE )
 
 find_package(VTK COMPONENTS vtkGUISupportQt)
 message(status "** Libraries VTK: ${VTK_LIBRARIES}")
@@ -28,8 +26,6 @@ target_link_libraries(FFTFromImage.exe
     ${Qt5PrintSupport_LIBRARIES}
     ${Qt5Svg_LIBRARIES}
     ${Qt5DBus_LIBRARIES}
-    ${Qt5WebEngineWidgets_LIBRARIES}
-    ${Qt5WebChannel_LIBRARIES}
     )
 target_link_libraries(FFTFromImage.exe SAXSsim)
 target_link_libraries(FFTFromImage.exe ${VTK_LIBRARIES})

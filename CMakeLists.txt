@@ -61,15 +61,11 @@ if(ENABLE_QT)
     find_package(Qt5PrintSupport)
     find_package(Qt5Svg)
     find_package(Qt5DBus)
-    find_package(Qt5WebEngineWidgets)
-    find_package(Qt5WebChannel)
     include_directories(SYSTEM
         ${Qt5Widgets_INCLUDE_DIRS}
         ${Qt5PrintSupport_INCLUDE_DIRS}
         ${Qt5Svg_INCLUDE_DIRS}
         ${Qt5DBus_INCLUDE_DIRS}
-        ${Qt5WebEngineWidgets_INCLUDE_DIRS}
-        ${Qt5WebChannel}
         ${VTK_INCLUDE_DIRS})
     add_definitions(-DENABLE_QT)
     message(status "Qt5Widgets: ${Qt5Widgets_INCLUDE_DIRS}")

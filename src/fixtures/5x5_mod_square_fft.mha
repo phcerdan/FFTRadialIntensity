@@ -1,0 +1,14 @@
+ObjectType = Image
+NDims = 2
+BinaryData = True
+BinaryDataByteOrderMSB = False
+CompressedData = False
+TransformMatrix = 1 0 0 1
+Offset = 0 0
+CenterOfRotation = 0 0
+ElementSpacing = 0.352778 0.352778
+DimSize = 5 5
+AnatomicalOrientation = ??
+ElementType = MET_FLOAT
+ElementDataFile = LOCAL
+ßJŸý®H€[G€[GŸý®HàDhH}0”H)GŸ¼Gãr×H€ØGåÉGR¼F¶Þ@Hs}‘G€ØGs}‘G¶Þ@HR¼FåÉGàDhHãr×HŸ¼G)G}0”H

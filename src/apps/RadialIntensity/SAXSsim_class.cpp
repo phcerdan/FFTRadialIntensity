@@ -18,36 +18,23 @@
 */
 #include <iostream>
 #include "prog_options.h"
+#include "SAXSsim.h"
 #include "image_functions.h"
 #include "radial_intensity.h"
-#include "saxs_sim_functional.h"
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-
+using namespace std;
 int main(int argc, char* argv[]){
 
     try {
         auto option_map = program_options(argc, argv);
         string input = option_map["input_img"].as<string>();
         string output = option_map["output"].as<string>();
-        //TODO allow prog options to accept different dimensions
-        using ImageType = itk::Image<float, 2>;
-        const fs::path ipath{input};
-        auto intensities_histogram_meta = radial_intensity::ComputeRadialIntensitiyFromImage<ImageType>(fs::absolute(ipath).string());
-        const auto & intensities = std::get<0>(intensities_histogram_meta);
-        // auto & histo = std::get<1>(intensities_histogram_meta);
-        auto & meta = std::get<2>(intensities_histogram_meta);
-        auto average_intensities = radial_intensity::AverageRadialFrequencyIntensities(intensities);
-        std::string img_basename = ipath.stem().string();
-        // Change meta.name to basename, rather than full path.
-        meta.name = img_basename;
-        const fs::path opath{output};
-        const fs::path abs_opath = fs::absolute(opath);
-        const auto dir = abs_opath.parent_path();
-        if (!fs::exists(dir))
-            fs::create_directory(dir);
 
-        radial_intensity::SaveRadialIntensityProfile(average_intensities, opath.string(), meta);
+        #ifdef ENABLE_PARALLEL
+        int num_threads = option_map["num_threads"].as<int>();
+        auto sim = SAXSsim(input, output, num_threads);
+        #else
+        auto sim = SAXSsim(input, output);
+        #endif
     } catch(po_help_exception & e){
         return 1;
     };

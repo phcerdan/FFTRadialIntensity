@@ -1,6 +1,10 @@
-add_executable(SAXSsim.exe radial_intensity.cpp)
+add_executable(SAXSsim.exe SAXSsim_class.cpp)
 # include_directories(${IPP_LIB_FOLDER})
 target_link_libraries(SAXSsim.exe SAXSsim)
+
+add_executable(SAXSsim_functional.exe radial_intensity.cpp)
+# include_directories(${IPP_LIB_FOLDER})
+target_link_libraries(SAXSsim_functional.exe SAXSsim)
 
 IF(ENABLE_TEST)
     add_subdirectory(test)

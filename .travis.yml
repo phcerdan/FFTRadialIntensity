@@ -11,49 +11,58 @@ before_install:
 - export APP_NAME="Radial"
 - export DEPS_DIR="$SRC_DIR/deps"
 - sudo add-apt-repository ppa:beineri/opt-qt59-trusty -y
-- sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
 - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
 - sudo apt-get update
-- sudo apt-get install gcc-7 cmake -y
-- export CXX="g++-7" CC="gcc-7"
-- sudo apt-get install libboost-system-dev \
+- sudo apt-get install gcc-7 g++-7 cmake unzip -y
+- export CC="gcc-7"
+- export CXX="g++-7"
+- sudo apt-get install libboost-system-dev
   libboost-filesystem-dev libboost-program-options-dev -y
-- sudo apt-get install qt59base qt59svg qt59charts-no-lgpl -y
+- sudo apt-get install qt59base qt59svg qt59x11extras qt59charts-no-lgpl -y
 - source /opt/qt59/bin/qt59-env.sh
+
 install:
+# CMAKE
+- "curl https://cmake.org/files/v3.9/cmake-3.9.0.tar.gz | tar -xz"
+- cd cmake*
+- ./configure
+- make -j3
+- sudo make install
+- cd ..
 # VTK
 - export VTK_VERSION="8.0"
-- curl http://www.vtk.org/files/release/8.0/VTK-8.0.0.zip | tar xvz
+- wget -c http://www.vtk.org/files/release/8.0/VTK-8.0.0.zip;
+- unzip -qq VTK-8.0.0.zip
 - cd VTK*
 - mkdir build && cd build
-- cmake -DVTK_QT_VERSION:STRING=5 \
-  -DVTK_Group_Qt:BOOL=ON \
-  -DCMAKE_BUILD_TYPE:STRING=Release \
-  -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_DIR} \
+- cmake -DVTK_QT_VERSION:STRING=5
+  -DVTK_Group_Qt:BOOL=ON
+  -DCMAKE_BUILD_TYPE:STRING=Release
+  -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_DIR}
   ..
 - make -j3 && make install
 - cd ../..
-  # -DQT_QMAKE_EXECUTABLE:PATH=/path/to/qt5.2.1-install/5.2.1/gcc_64/bin/qmake \
-  # -DCMAKE_PREFIX_PATH:PATH=/path/to/qt.5.2.1-install/5.2.1/gcc_64/lib/cmake  \
+  # -DQT_QMAKE_EXECUTABLE:PATH=/path/to/qt5.2.1-install/5.2.1/gcc_64/bin/qmake
+  # -DCMAKE_PREFIX_PATH:PATH=/path/to/qt.5.2.1-install/5.2.1/gcc_64/lib/cmake 
   # -DBUILD_SHARED_LIBS:BOOL=ON
   # -DModule_vtkInfovisBoostGraphAlgorithms:BOOL=ON # requires boost
 ## END VTK
 # ITK
 - sudo apt-get install libfftw3-dev -y
-- curl https://sourceforge.net/projects/itk/files/itk/4.12/InsightToolkit-4.12.0.tar.gz/download | tar xvz
+- "curl https://sourceforge.net/projects/itk/files/itk/4.12/InsightToolkit-4.12.0.tar.gz/download | tar -xz"
 - cd Insight*
 - mkdir build && cd build
-- cmake \
-  -DITK_USE_FFTW:BOOL=ON \
-  -DITK_USE_FFTWD:BOOL=ON \
-  -DITK_USE_FFTWF:BOOL=ON \
-  -DITK_MODULE_IsotropicWavelets:BOOL=ON \
+- cmake
+  -DITK_USE_FFTW:BOOL=ON
+  -DITK_USE_FFTWD:BOOL=ON
+  -DITK_USE_FFTWF:BOOL=ON
+  -DITK_MODULE_IsotropicWavelets:BOOL=ON
   -DVTK_DIR:PATH=${DEPS_DIR}/lib64/cmake/${VTK_VERSION}
-  -DITK_MODULE_ITKVtkGlue:BOOL=ON \
-  -DITK_USE_SYSTEM_LIBRARIES:BOOL=ON \
-  -DBUILD_TESTING:BOOL=OFF \
-  -DCMAKE_BUILD_TYPE:STRING=Release \
-  -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_DIR} \
+  -DITK_MODULE_ITKVtkGlue:BOOL=ON
+  -DITK_USE_SYSTEM_LIBRARIES:BOOL=ON
+  -DBUILD_TESTING:BOOL=OFF
+  -DCMAKE_BUILD_TYPE:STRING=Release
+  -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_DIR}
   ..
 - make -j3 && make install
 - cd ../..
@@ -61,15 +70,15 @@ install:
 script:
 # BUILD APP
 - mkdir build && cd build
-- cmake \
-  -DBUILD_TESTING:BOOL=OFF \
-  -DENABLE_QT:BOOL=ON \
-  -DENABLE_PARALLEL:BOOL=OFF \
-  -DENABLE_R:BOOL=OFF \
-  -DENABLE_TEST:BOOL=OFF \
-  -DVTK_Group_Qt:BOOL=ON \
-  -DCMAKE_BUILD_TYPE:STRING=Release \
-  -DCMAKE_INSTALL_PREFIX:PATH=${APP_DIR} \
+- cmake
+  -DBUILD_TESTING:BOOL=OFF
+  -DENABLE_QT:BOOL=ON
+  -DENABLE_PARALLEL:BOOL=OFF
+  -DENABLE_R:BOOL=OFF
+  -DENABLE_TEST:BOOL=OFF
+  -DVTK_Group_Qt:BOOL=ON
+  -DCMAKE_BUILD_TYPE:STRING=Release
+  -DCMAKE_INSTALL_PREFIX:PATH=${APP_DIR}
   ..
 - make -j3
 - make install

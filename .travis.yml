@@ -1,0 +1,115 @@
+dist: trusty
+language: cpp
+sudo: required
+branches:
+  except:
+  - "/^v[0-9]/"
+before_install:
+- export SRC_DIR="`pwd`"
+- mkdir deps
+- export APP_DIR="$SRC_DIR/app"
+- export APP_NAME="Radial"
+- export DEPS_DIR="$SRC_DIR/deps"
+- sudo add-apt-repository ppa:beineri/opt-qt59-trusty -y
+- sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+- sudo apt-get update
+- sudo apt-get install gcc7 cmake -y
+- export CXX="g++-7" CC="gcc-7"
+- sudo apt-get install libboost-system-dev \
+  libboost-filesystem-dev libboost-program-options-dev -y
+- sudo apt-get install qt59base qt59svg qt59charts-no-lgpl -y
+- source /opt/qt59/bin/qt59-env.sh
+install:
+# VTK
+- export VTK_VERSION="8.0"
+- curl http://www.vtk.org/files/release/8.0/VTK-8.0.0.zip | tar xvz
+- cd VTK*
+- mkdir build && cd build
+- cmake -DVTK_QT_VERSION:STRING=5 \
+  -DVTK_Group_Qt:BOOL=ON \
+  -DCMAKE_BUILD_TYPE:STRING=Release \
+  -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_DIR} \
+  ..
+- make -j3 && make install
+- cd ../..
+  # -DQT_QMAKE_EXECUTABLE:PATH=/path/to/qt5.2.1-install/5.2.1/gcc_64/bin/qmake \
+  # -DCMAKE_PREFIX_PATH:PATH=/path/to/qt.5.2.1-install/5.2.1/gcc_64/lib/cmake  \
+  # -DBUILD_SHARED_LIBS:BOOL=ON
+  # -DModule_vtkInfovisBoostGraphAlgorithms:BOOL=ON # requires boost
+## END VTK
+# ITK
+- sudo apt-get install libfftw3-dev -y
+- curl https://sourceforge.net/projects/itk/files/itk/4.12/InsightToolkit-4.12.0.tar.gz/download | tar xvz
+- cd Insight*
+- mkdir build && cd build
+- cmake \
+  -DITK_USE_FFTW:BOOL=ON \
+  -DITK_USE_FFTWD:BOOL=ON \
+  -DITK_USE_FFTWF:BOOL=ON \
+  -DITK_MODULE_IsotropicWavelets:BOOL=ON \
+  -DVTK_DIR:PATH=${DEPS_DIR}/lib64/cmake/${VTK_VERSION}
+  -DITK_MODULE_ITKVtkGlue:BOOL=ON \
+  -DITK_USE_SYSTEM_LIBRARIES:BOOL=ON \
+  -DBUILD_TESTING:BOOL=OFF \
+  -DCMAKE_BUILD_TYPE:STRING=Release \
+  -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_DIR} \
+  ..
+- make -j3 && make install
+- cd ../..
+## END ITK
+script:
+# BUILD APP
+- mkdir build && cd build
+- cmake \
+  -DBUILD_TESTING:BOOL=OFF \
+  -DENABLE_QT:BOOL=ON \
+  -DENABLE_PARALLEL:BOOL=OFF \
+  -DENABLE_R:BOOL=OFF \
+  -DENABLE_TEST:BOOL=OFF \
+  -DVTK_Group_Qt:BOOL=ON \
+  -DCMAKE_BUILD_TYPE:STRING=Release \
+  -DCMAKE_INSTALL_PREFIX:PATH=${APP_DIR} \
+  ..
+- make -j3
+- make install
+- cd ..
+- find ${APP_DIR}/
+- cd ${APP_DIR}
+- mkdir -p ./usr/bin ; mv ./usr/local/bin/* ./usr/bin/ || true
+# - cp ./usr/share/icons/hicolor/48x48/apps/fastqt.png .
+# - cp ./usr/share/applications/fastqt.desktop .
+# AppImage: linuxdeployqt
+- cd ..
+- wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+- chmod a+x linuxdeployqt*.AppImage
+- unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
+- ./linuxdeployqt*.AppImage .${APP_DIR}/bin/* -bundle-non-qt-libs
+- ./linuxdeployqt*.AppImage .${APP_DIR}/bin/* -appimage
+- curl --upload-file ./$APP_NAME*.AppImage https://transfer.sh/$APP_NAME-git.$(git rev-parse
+  --short HEAD)-x86_64.AppImage
+
+notifications:
+  email:
+    recipients:
+      - pablo.hernandez.cerdan@outlook.com
+    on_success: change # default: change
+    on_failure: always # default: always
+  # webhooks:
+  #   urls:
+  #   - https://webhooks.gitter.im/e/de567d4879b8b044dfe7
+  #   on_success: change
+  #   on_failure: always
+  #   on_start: never
+
+# Generated automatically from CLI `travis setup releases`
+deploy:
+  provider: releases
+  api_key:
+    secure: LjW7UXZQvJR3+s5hGuekWtbLnduGntZphscZo9wl+v0VPOirMQzVhKB9foc8WK4dG3ArDLE62+VQHm22cEu2UBJI8IpfKJnqW65dmLDURhvvl6ohmxmVOT8rFL0Z4PcgoiQB0niKkJGdq8Tc/JZDWj40aPjO++ywyaSJTA/Imo7WbdwE39uU8VrXZWiN+gX02pSsgvLV37Cz2KidLYXpAs8Pepeoh10fHoLclfTQf7aqVVNfh51YtSfkbT49uSpltschQ2SZnAFddUPi/F6YWle73M3Hq5mxYlojIRj23NrpVB1rcgdxYx9Ctl5b4UeIQ21lLt3XnUqeVbR5rJ+f5wWt/OE/XDzzMkqS2ROLylBxfy26zarIxFSGmkF2vBAsnHg/HI2FEEykjMrIXnB+ugD5zPdiwi3M0Frsswx++B+jse1WdSPyYKd2i5PEGFqHdm+Tqoxr7BqmOnhQWW1uO5cFVA+/kIb5N3Woh6RYGlIWHXE3QzU70oil6MVuKWFCfkl9fONQO4sBo9jVLEdpZHFWDquiMG1bPbjYqLWC0hrckIqub8A+NAPgUVZvIU/BYHtGrnZAEbaeTIhyubWlczhb4zIahbEsK1i0G24t0g2sXJocUGig9CR090HxmpG3mvRQWEF/6zr7oRpBIVU8ZGM+TjZ3lZf5nfU5Plbofss=
+  file: "*.AppImage"
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: phcerdan/FFT-from-image-compute-radial-intensity
+    branch: travis_integration

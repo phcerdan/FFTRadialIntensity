@@ -18,17 +18,13 @@ before_install:
 - export CXX="g++-7"
 - sudo apt-get install libboost-system-dev
   libboost-filesystem-dev libboost-program-options-dev -y
-- sudo apt-get install qt59base qt59svg qt59x11extras qt59charts-no-lgpl -y
+- sudo apt-get install qt59base qt59svg qt59x11extras qt59charts-no-lgpl qt59tools -y
 - source /opt/qt59/bin/qt59-env.sh
 
 install:
 # CMAKE
-- "curl https://cmake.org/files/v3.9/cmake-3.9.0.tar.gz | tar -xz"
-- cd cmake*
-- ./configure
-- make -j3
-- sudo make install
-- cd ..
+- wget -c "https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.sh"
+- sudo sh ./cmake-3.9.0-Linux-x86_64.sh --prefix=/usr/local --skip-license
 # VTK
 - export VTK_VERSION="8.0"
 - wget -c http://www.vtk.org/files/release/8.0/VTK-8.0.0.zip;
@@ -43,13 +39,15 @@ install:
 - make -j3 && make install
 - cd ../..
   # -DQT_QMAKE_EXECUTABLE:PATH=/path/to/qt5.2.1-install/5.2.1/gcc_64/bin/qmake
-  # -DCMAKE_PREFIX_PATH:PATH=/path/to/qt.5.2.1-install/5.2.1/gcc_64/lib/cmake 
+  # -DCMAKE_PREFIX_PATH:PATH=/path/to/qt.5.2.1-install/5.2.1/gcc_64/lib/cmake
   # -DBUILD_SHARED_LIBS:BOOL=ON
   # -DModule_vtkInfovisBoostGraphAlgorithms:BOOL=ON # requires boost
 ## END VTK
 # ITK
+- export ITK_VERSION="4.12"
 - sudo apt-get install libfftw3-dev -y
-- "curl https://sourceforge.net/projects/itk/files/itk/4.12/InsightToolkit-4.12.0.tar.gz/download | tar -xz"
+- wget -c "https://sourceforge.net/projects/itk/files/itk/4.12/InsightToolkit-4.12.0.tar.gz/download"
+- tar -xf download
 - cd Insight*
 - mkdir build && cd build
 - cmake
@@ -57,13 +55,13 @@ install:
   -DITK_USE_FFTWD:BOOL=ON
   -DITK_USE_FFTWF:BOOL=ON
   -DITK_MODULE_IsotropicWavelets:BOOL=ON
-  -DVTK_DIR:PATH=${DEPS_DIR}/lib64/cmake/${VTK_VERSION}
+  -DVTK_DIR:PATH=${DEPS_DIR}/lib/cmake/vtk-${VTK_VERSION}
   -DITK_MODULE_ITKVtkGlue:BOOL=ON
-  -DITK_USE_SYSTEM_LIBRARIES:BOOL=ON
   -DBUILD_TESTING:BOOL=OFF
   -DCMAKE_BUILD_TYPE:STRING=Release
   -DCMAKE_INSTALL_PREFIX:PATH=${DEPS_DIR}
   ..
+# -DITK_USE_SYSTEM_LIBRARIES:BOOL=ON
 - make -j3 && make install
 - cd ../..
 ## END ITK
@@ -76,7 +74,7 @@ script:
   -DENABLE_PARALLEL:BOOL=OFF
   -DENABLE_R:BOOL=OFF
   -DENABLE_TEST:BOOL=OFF
-  -DVTK_Group_Qt:BOOL=ON
+  -DITK_DIR:PATH=${DEPS_DIR}/lib/cmake/ITK-${ITK_VERSION}
   -DCMAKE_BUILD_TYPE:STRING=Release
   -DCMAKE_INSTALL_PREFIX:PATH=${APP_DIR}
   ..

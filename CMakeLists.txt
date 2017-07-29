@@ -80,12 +80,7 @@ endif()
 add_library(SAXSsim ${CMAKE_CURRENT_SOURCE_DIR}/src/SAXSsim.cpp)
 target_link_libraries(SAXSsim ${Boost_LIBRARIES})
 target_link_libraries(SAXSsim ${ITK_LIBRARIES} )
-install(TARGETS SAXSsim
-    BUNDLE  DESTINATION .
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    )
+install(TARGETS SAXSsim DESTINATION bin OPTIONAL)
 
 add_subdirectory(apps)
 

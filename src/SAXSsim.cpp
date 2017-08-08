@@ -21,7 +21,7 @@
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-#include <itkSCIFIOImageIO.h>
+// #include <itkSCIFIOImageIO.h>
 #include <itkTIFFImageIO.h>
 #include <itkFFTShiftImageFilter.h>
 #include <itkComplexToModulusImageFilter.h>

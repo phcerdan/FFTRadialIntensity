@@ -1,11 +1,12 @@
-FROM phcerdan/vtk:latest
+FROM phcerdan/itk:latest
 
-ENV ITK_VERSION=4.12
-ARG DEPS_DIR=/opt/deps
-
-# For nvidia you will require others
+#  Boost
 RUN apt-get -y install \
-    libfftw3-dev
+    libboost-system-dev \
+    libboost-program-options-dev \
+    libboost-filesystem-dev
+
+ARG DEPS_DIR=/opt/deps
 
 RUN wget -c "https://sourceforge.net/projects/itk/files/itk/4.12/InsightToolkit-4.12.0.tar.gz/download" && \
     tar -xf download && \

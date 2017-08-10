@@ -16,10 +16,10 @@ RUN cd repo && mkdir build && cd build && \
     cmake \
      -DENABLE_QT:BOOL=ON \
      -DITK_DIR=/opt/lib/cmake/ITK-${ITK_VERSION} \
-     -DCMAKE_INSTALL_PREFIX=${APP_DIR} \
+     -DCMAKE_INSTALL_PREFIX=/usr \
      .. && \
      make -j$(nproc) && \
-     make install
+     make DESTDIR=/opt/app install ; find /opt/app
 
 # Build-time metadata as defined at http://label-schema.org
 ARG BUILD_DATE

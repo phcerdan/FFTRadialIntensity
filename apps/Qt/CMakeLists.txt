@@ -41,12 +41,12 @@ file(COPY ${CMAKE_SOURCE_DIR}/scripts DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
 #         FILES_MATCHING  PATTERN "*.h"
 #         PATTERN "test/"      EXCLUDE
 #         PATTERN "resources/" EXCLUDE)
-# install(TARGETS FFTFromImage.exe
-#     BUNDLE  DESTINATION .
-#     RUNTIME DESTINATION bin
-#     LIBRARY DESTINATION lib
-#     ARCHIVE DESTINATION lib
-#     )
+install(TARGETS FFTFromImage.exe
+    BUNDLE  DESTINATION .
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    )
 # get_target_property(MY_BINARY_LOCATION FFTFromImage.exe LOCATION)
 # include(GetPrerequisites)
 # get_prerequisites("${MY_BINARY_LOCATION}" DEPENDENCIES 1 1 "" "")

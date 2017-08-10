@@ -1,4 +1,4 @@
-FROM phcerdan/xenial_itk:latest
+FROM phcerdan/itk:latest
 
 #  Boost
 RUN apt-get -y install \
@@ -6,17 +6,14 @@ RUN apt-get -y install \
     libboost-program-options-dev \
     libboost-filesystem-dev
 
-RUN apt-get -y install \
-    libqt5svg5-dev
-
+ARG DEPS_DIR=/opt/deps
 ARG APP_DIR=/opt/app
 COPY . repo
 RUN cd repo && mkdir build && cd build && \
     echo ${DEPS_DIR} && \
     cmake \
-     -DENABLE_QT:BOOL=ON \
-     -DITK_DIR=/opt/lib/cmake/ITK-${ITK_VERSION} \
-     -DCMAKE_INSTALL_PREFIX=${APP_DIR} \
+     -DITK_DIR=${DEPS_DIR}/lib/cmake/ITK-${ITK_VERSION} \
+     -DCMAKE_INSTALL_PREFIX={APP_DIR} \
      .. && \
      make -j$(nproc) && \
      make install

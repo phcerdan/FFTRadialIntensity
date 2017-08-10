@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=SAXS-sim
+Exec=FFTFromImage.exe
+icon=saxs_sim_icon.svg
+Type=Application
+Categories=Science;FFT

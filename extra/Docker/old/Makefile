@@ -12,7 +12,7 @@ ORG = phcerdan
 # BIN = ./bin
 
 # This list all available images
-IMAGES = xenial_deps xenial_itk
+IMAGES = 0_base 1_qt5 3_vtk 4_itk
 
 # On CircleCI, do not attempt to delete container
 # See https://circleci.com/docs/docker-btrfs-error/
@@ -26,16 +26,28 @@ endif
 #
 images: $(IMAGES)
 
-xenial_deps:
-	$(DOCKER) build -t $(ORG)/xenial_deps \
-		--build-arg IMAGE=$(ORG)/xenial_deps \
+0_base:
+	$(DOCKER) build -t $(ORG)/base \
+		--build-arg IMAGE=$(ORG)/base \
 		--build-arg VCS_URL=`git config --get remote.origin.url` \
-		.
+		./0_base
 
-xenial_itk:
-	$(DOCKER) build -t $(ORG)/xenial_itk \
-		--build-arg IMAGE=$(ORG)/xenial_itk \
+1_qt5:
+	$(DOCKER) build -t $(ORG)/qt5 \
+		--build-arg IMAGE=$(ORG)/qt5 \
 		--build-arg VCS_URL=`git config --get remote.origin.url` \
-		./itk
+		./$@
+
+3_vtk:
+	$(DOCKER) build -t $(ORG)/vtk \
+		--build-arg IMAGE=$(ORG)/vtk \
+		--build-arg VCS_URL=`git config --get remote.origin.url` \
+		./$@
+
+4_itk:
+	$(DOCKER) build -t $(ORG)/itk \
+		--build-arg IMAGE=$(ORG)/itk \
+		--build-arg VCS_URL=`git config --get remote.origin.url` \
+		./$@
 
 .PHONY: $(IMAGES)

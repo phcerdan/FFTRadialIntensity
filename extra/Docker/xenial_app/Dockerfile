@@ -1,4 +1,4 @@
-FROM phcerdan/itk:latest
+FROM phcerdan/xenial_itk:latest
 
 #  Boost
 RUN apt-get -y install \

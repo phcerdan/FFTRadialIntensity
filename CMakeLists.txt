@@ -88,7 +88,10 @@ add_library(SAXSsim ${CMAKE_CURRENT_SOURCE_DIR}/src/SAXSsim.cpp)
 target_link_libraries(SAXSsim ${Boost_LIBRARIES})
 target_link_libraries(SAXSsim ${ITK_LIBRARIES} )
 install(TARGETS SAXSsim DESTINATION lib OPTIONAL)
+install(FILES extra/deploy/saxs_sim_icon.svg DESTINATION share/icons)
+install(FILES extra/deploy/SAXSsim.desktop DESTINATION share/applications)
 
 add_subdirectory(apps)
 
 file(COPY "./fixtures" DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
+

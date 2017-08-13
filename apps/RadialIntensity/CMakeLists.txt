@@ -1,10 +1,10 @@
-add_executable(SAXSsim.exe SAXSsim_class.cpp)
+add_executable(SAXSsim SAXSsim_class.cpp)
 # include_directories(${IPP_LIB_FOLDER})
-target_link_libraries(SAXSsim.exe SAXSsim)
+target_link_libraries(SAXSsim SAXSsim-dev)
 
-add_executable(SAXSsim_functional.exe SAXSsim_functional.cpp)
+add_executable(SAXSsim_functional SAXSsim_functional.cpp)
 # include_directories(${IPP_LIB_FOLDER})
-target_link_libraries(SAXSsim_functional.exe SAXSsim)
+target_link_libraries(SAXSsim_functional SAXSsim-dev)
 
 IF(ENABLE_TEST)
     add_subdirectory(test)
@@ -21,10 +21,10 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/fixtures DESTINATION bin)
 
 install(PROGRAMS ${CMAKE_SOURCE_DIR}/scripts/plotI-q.R DESTINATION bin)
 
-install(TARGETS SAXSsim.exe
+install(TARGETS SAXSsim
     DESTINATION bin OPTIONAL)
 if(APPLE)
-    set(APPS "\${CMAKE_INSTALL_PREFIX}/bin/SAXSsim.exe")
+    set(APPS "\${CMAKE_INSTALL_PREFIX}/bin/SAXSsim")
     set(YOUR_PLUGINS "") #empty for now
     set(YOUR_LIBRARY_DIRS "")
     install(CODE "

@@ -84,12 +84,18 @@ if("${isSystemDir}" STREQUAL "-1")
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 ## Common functions. Cannot create a library in subfolder and then share with other subdirectories.
-add_library(SAXSsim ${CMAKE_CURRENT_SOURCE_DIR}/src/SAXSsim.cpp)
-target_link_libraries(SAXSsim ${Boost_LIBRARIES})
-target_link_libraries(SAXSsim ${ITK_LIBRARIES} )
-install(TARGETS SAXSsim DESTINATION lib OPTIONAL)
-install(FILES extra/deploy/saxs_sim_icon.svg DESTINATION share/icons)
-install(FILES extra/deploy/SAXSsim.desktop DESTINATION share/applications)
+add_library(SAXSsim-dev ${CMAKE_CURRENT_SOURCE_DIR}/src/SAXSsim.cpp)
+target_link_libraries(SAXSsim-dev ${Boost_LIBRARIES})
+target_link_libraries(SAXSsim-dev ${ITK_LIBRARIES} )
+install(TARGETS SAXSsim-dev DESTINATION lib OPTIONAL)
+install(DIRECTORY extra/deploy/ DESTINATION share/icons
+    FILES_MATCHING
+    PATTERN "*.svg"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
+install(DIRECTORY extra/deploy/ DESTINATION share/applications
+    FILES_MATCHING
+    PATTERN "*.desktop"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 
 add_subdirectory(apps)
 

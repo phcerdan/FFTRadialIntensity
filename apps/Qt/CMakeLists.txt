@@ -19,16 +19,16 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 # QT5_WRAP_UI(QT_UI_HEADERS mainwindow.ui)
 # QT5_ADD_RESOURCES(QT_RESOURCES resources.qrc)
-add_executable(FFTFromImage.exe mainwindow.cpp newdialog.cpp rdialog.cpp WorkerSim.cpp mainQT.cpp resources.qrc)
+add_executable(FFTFromImage mainwindow.cpp newdialog.cpp rdialog.cpp WorkerSim.cpp mainQT.cpp resources.qrc)
 # include_directories(${IPP_LIB_FOLDER})
-target_link_libraries(FFTFromImage.exe
+target_link_libraries(FFTFromImage
     ${Qt5Widgets_LIBRARIES}
     ${Qt5PrintSupport_LIBRARIES}
     ${Qt5Svg_LIBRARIES}
     ${Qt5DBus_LIBRARIES}
     )
-target_link_libraries(FFTFromImage.exe SAXSsim)
-target_link_libraries(FFTFromImage.exe ${VTK_LIBRARIES})
+target_link_libraries(FFTFromImage SAXSsim-dev)
+target_link_libraries(FFTFromImage ${VTK_LIBRARIES})
 file(COPY ${CMAKE_SOURCE_DIR}/scripts DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
 
 #IF WIN
@@ -41,23 +41,23 @@ file(COPY ${CMAKE_SOURCE_DIR}/scripts DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
 #         FILES_MATCHING  PATTERN "*.h"
 #         PATTERN "test/"      EXCLUDE
 #         PATTERN "resources/" EXCLUDE)
-install(TARGETS FFTFromImage.exe
+install(TARGETS FFTFromImage
     BUNDLE  DESTINATION .
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     )
-# get_target_property(MY_BINARY_LOCATION FFTFromImage.exe LOCATION)
+# get_target_property(MY_BINARY_LOCATION FFTFromImage LOCATION)
 # include(GetPrerequisites)
 # get_prerequisites("${MY_BINARY_LOCATION}" DEPENDENCIES 1 1 "" "")
 # foreach(DEPENDENCY_FILE ${DEPENDENCIES})
-#     gp_resolve_item("\${CMAKE_INSTALL_PREFIX}/FFTFromImage.exe" "${DEPENDENCY_FILE}" "" "" resolved_file)
+#     gp_resolve_item("\${CMAKE_INSTALL_PREFIX}/FFTFromImage" "${DEPENDENCY_FILE}" "" "" resolved_file)
 #     message("resolved_file='${resolved_file}'")
 #     install(PROGRAMS ${resolved_file} DESTINATION dependencies)
 # endforeach()
 
 # if(APPLE)
-#     set(APPS "\${CMAKE_INSTALL_PREFIX}/bin/FFTFromImage.exe")
+#     set(APPS "\${CMAKE_INSTALL_PREFIX}/bin/FFTFromImage")
 #     set(YOUR_PLUGINS "") #empty for now
 #     set(YOUR_LIBRARY_DIRS "")
 #     install(CODE "

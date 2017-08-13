@@ -12,5 +12,5 @@ do
     s3='/home/phc/DATA/stack_to_images/'$s2'.tif'
     outfile=$outdir'/slice_'$i
 	echo $s3
-    /bin/bash -c './SAXSsim.exe -i '"$s3"' -j 12 -o '"$outfile"''
+    /bin/bash -c './SAXSsim -i '"$s3"' -j 12 -o '"$outfile"''
 done

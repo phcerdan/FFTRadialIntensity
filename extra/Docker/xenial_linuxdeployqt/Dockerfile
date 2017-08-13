@@ -15,7 +15,14 @@ ENV QT_SELECT=5
 # For lconvert
 RUN apt-get install -y \
     qttools5-dev-tools
+
 RUN ./linuxdeployqt*.AppImage --appimage-extract
+RUN echo "extern int is_selinux_enabled(void){return 0;}" >> selinux-mock.c && \
+    gcc -s -shared -o libselinux.so.1 -Wl,-soname,libselinux.so.1 selinux-mock.c && \
+    rm selinux-mock.c && \
+    mv libselinux.so.1 \
+    ${APP_DIR}/usr/lib/
+# RUN cp /lib/x86_64-linux-gnu/libselinux.so.1 ${APP_DIR}/usr/lib/
 RUN ./squashfs-root/AppRun .${APP_DIR}/usr/share/applications/*.desktop -bundle-non-qt-libs
 RUN ./squashfs-root/AppRun .${APP_DIR}/usr/share/applications/*.desktop -appimage
 RUN rm -rf ./squashfs-root/

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=SAXSsim
-Exec=SAXSsim.exe
+Exec=SAXSsim
 Icon=saxs_sim_icon
 Type=Application
 Categories=Science; FFT

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=FFTFromImage
-Exec=FFTFromImage.exe
+Exec=FFTFromImage
 Icon=saxs_sim_icon
 Type=Application
 Categories=Science; FFT

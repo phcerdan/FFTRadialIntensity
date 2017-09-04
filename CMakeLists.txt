@@ -88,6 +88,10 @@ add_library(SAXSsim-dev ${CMAKE_CURRENT_SOURCE_DIR}/src/SAXSsim.cpp)
 target_link_libraries(SAXSsim-dev ${Boost_LIBRARIES})
 target_link_libraries(SAXSsim-dev ${ITK_LIBRARIES} )
 install(TARGETS SAXSsim-dev DESTINATION lib OPTIONAL)
+
+add_library(radial_intensity-dev ${CMAKE_CURRENT_SOURCE_DIR}/src/radial_intensity.cpp)
+install(TARGETS radial_intensity-dev DESTINATION lib OPTIONAL)
+
 install(DIRECTORY extra/deploy/ DESTINATION share/icons
     FILES_MATCHING
     PATTERN "*.svg"

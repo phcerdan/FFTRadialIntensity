@@ -38,15 +38,15 @@ public:
     virtual  ~NewDialog();
 public slots:
     void browseOpenFile();
-    void browseSaveFile();
     void on_acceptedSettings();
+    // void browseSaveFile();
 signals:
-    void newSimFromDialog(std::string imgName, std::string outputPlotName, int num_threads, bool saveToFile );
+    void newSimFromDialog(std::string imgName);
 public:
     QString inputImage;
-    QString outputPlot;
-    bool saveToFile;
-    int numThreads;
+    // QString outputPlot;
+    // bool saveToFile;
+    // int numThreads;
 private:
     Ui::NewDialog *ui;
 };

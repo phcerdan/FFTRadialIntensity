@@ -3,8 +3,9 @@ add_executable(SAXSsim SAXSsim_class.cpp)
 target_link_libraries(SAXSsim SAXSsim-dev)
 
 add_executable(SAXSsim_functional SAXSsim_functional.cpp)
-# include_directories(${IPP_LIB_FOLDER})
-target_link_libraries(SAXSsim_functional SAXSsim-dev)
+target_link_libraries(SAXSsim_functional radial_intensity-dev)
+target_link_libraries(SAXSsim_functional ${ITK_LIBRARIES})
+target_link_libraries(SAXSsim_functional ${Boost_LIBRARIES})
 
 IF(ENABLE_TEST)
     add_subdirectory(test)

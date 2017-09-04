@@ -8,7 +8,7 @@ ARG APP_DIR=/opt/app
 
 RUN cd /opt
 RUN wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" && \
-    chmod a+x linuxdeployqt*.AppImage
+    chmod a+x linuxdeployqt*.AppImage #
 RUN unset QTDIR; unset QT_PLUGIN_PATH; unset LD_LIBRARY_PATH
 # qmake is simlinked to qtchooser!
 ENV QT_SELECT=5
@@ -23,8 +23,8 @@ RUN ./linuxdeployqt*.AppImage --appimage-extract
 #     rm selinux-mock.c && \
 #     mv libselinux.so.1 \
 #     ${APP_DIR}/usr/lib/
-RUN cp /lib/x86_64-linux-gnu/libselinux.so.1 ${APP_DIR}/usr/lib/ && \
-    patchelf --set-rpath '$ORIGIN' ${APP_DIR}/usr/lib/libselinux.so.1
+# RUN cp /lib/x86_64-linux-gnu/libselinux.so.1 ${APP_DIR}/usr/lib/ && \
+#     patchelf --set-rpath '$ORIGIN' ${APP_DIR}/usr/lib/libselinux.so.1
 RUN ./squashfs-root/AppRun .${APP_DIR}/usr/share/applications/*.desktop -bundle-non-qt-libs
 RUN ./squashfs-root/AppRun .${APP_DIR}/usr/share/applications/*.desktop -appimage
 RUN rm -rf ./squashfs-root/

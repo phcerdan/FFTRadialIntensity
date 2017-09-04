@@ -25,7 +25,12 @@ NewDialog::NewDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(ui->inputBrowseButton,SIGNAL(clicked()), this, SLOT(browseOpenFile()));
-    // connect(ui->outputBrowseButton,SIGNAL(clicked()), this, SLOT(browseSaveFile()));
+    connect(ui->outputBrowseButton,SIGNAL(clicked()), this, SLOT(browseSaveFile()));
+    /// Gray out if parallel is not enabled.
+#ifndef ENABLE_PARALLEL
+    ui->spinBoxThreads->setDisabled(true);
+    ui->labelThreads->setDisabled(true);
+#endif
     /// On accept send signal(via SLOT) to parent MainWindow.
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(on_acceptedSettings()));
 }
@@ -40,23 +45,27 @@ NewDialog::~NewDialog()
  */
 void NewDialog::browseOpenFile()
 {
+
     QFileDialog *fileDialog = new QFileDialog(this);
     QString fileName = fileDialog->getOpenFileName(this,tr("Image Path"), QDir::currentPath());
     delete fileDialog;
     ui->inputTextEdit->setPlainText(fileName);
+
 }
 
 /**
  * @brief Open a QFileDialog with save properties.
  */
-// void NewDialog::browseSaveFile()
-// {
-//     QFileDialog *fileDialog = new QFileDialog(this);
-//     QString fileName = fileDialog->getSaveFileName(this,"Save output .plot",
-//             QDir::currentPath(), tr("Plain text (*.plot)"));
-//     delete fileDialog;
-//     ui->outputTextEdit->setPlainText(fileName);
-// }
+void NewDialog::browseSaveFile()
+{
+
+    QFileDialog *fileDialog = new QFileDialog(this);
+    QString fileName = fileDialog->getSaveFileName(this,"Save output .plot",
+            QDir::currentPath(), tr("Plain text (*.plot)"));
+    delete fileDialog;
+    ui->outputTextEdit->setPlainText(fileName);
+
+}
 
 /**
  * @brief Transform QString to String, set members of dialog, and send newSimFromDialog signal, catched in MainWindow
@@ -64,8 +73,20 @@ void NewDialog::browseOpenFile()
 void NewDialog::on_acceptedSettings()
 {
     inputImage = ui->inputTextEdit->toPlainText();
-    // outputPlot = ui->outputTextEdit->toPlainText();
-    // saveToFile = ui->checkBoxSaveOutput;
+    outputPlot = ui->outputTextEdit->toPlainText();
+    saveToFile = ui->checkBoxSaveOutput;
+#ifdef ENABLE_PARALLEL
+    numThreads = ui->spinBoxThreads->value();
+#else
+    ui->spinBoxThreads->setEnabled(false);
+    // The default is 1.
+    numThreads = ui->spinBoxThreads->value();
+#endif
 
-    emit(newSimFromDialog(inputImage.toStdString()) );
+
+    emit(newSimFromDialog(
+                inputImage.toStdString(),
+                outputPlot.toStdString(),
+                numThreads,
+                saveToFile));
 }

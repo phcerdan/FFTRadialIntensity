@@ -20,6 +20,7 @@
 #define MAINWINDOW_H_
 
 #include "saxs_sim_functional.h"
+// #include "WorkerSim.h"
 #include <string>
 #include <memory>
 #include <QMainWindow>
@@ -27,7 +28,6 @@
 #include <QToolButton>
 #include <QString>
 #include <QDialog>
-#include <QFutureWatcher>
 #include <itkImageToVTKImageFilter.h>
 #include <QVTKWidget.h>
 #include <vtkSmartPointer.h>
@@ -38,6 +38,7 @@
 #include <vtkImageMapper3D.h>
 #include <vtkImageActor.h>
 #include <vtkInteractorStyleImage.h>
+// #include <QSvgWidget>
 
 namespace Ui
 {
@@ -52,42 +53,58 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     virtual ~MainWindow();
 
-    // template <typename InputImageType, typename OutputImageType = InputImageType>
-    // struct Result {
-    //     typename InputImageType::Pointer input;
-    //     typename OutputImageType::Pointer fft;
-    //     radial_intensity::IntensitiesHistoMetaTuple data;
-    // };
+    template <typename InputImageType, typename OutputImageType = InputImageType>
+    struct Result {
+        typename InputImageType::Pointer input;
+        typename OutputImageType::Pointer fft;
+        radial_intensity::IntensitiesHistoMetaTuple data;
+    };
 
-// signals:
-    // void inputFilename();
-    // void runWorkerSim(std::string, std::string, int, bool );
-    // void currentSimSwitch(size_t);
-// private slots:
-    // void renderInputTypeImage();
-    // void writeFFTImageToDisk();
-    // void renderFFTWindowed();
-    // void ShowContextMenuQVTKFFT(const QPoint& pos);
-    // void workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim);
-    // void on_currentSimSwitch(size_t);
+signals:
+    void inputFilename();
+    void runWorkerSim(std::string, std::string, int, bool );
+    void currentSimSwitch(size_t);
+private slots:
+    void newSim(std::string imgName, std::string outputPlotName, int num_threads = 1, bool saveToFile = 1);
+    void createNewDialog();
+    void renderInputTypeImage();
+    void writeFFTImageToDisk();
+    void renderFFTWindowed();
+    void ShowContextMenuQVTKFFT(const QPoint& pos);
+    void workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim);
+    void on_currentSimSwitch(size_t);
 
 private:
+    QVector<std::shared_ptr<SAXSsim>> simVector;
+    // QVector<vtkSmartPointer<vtkRenderer>> renInputVector;
+    // QVector<vtkSmartPointer<vtkRenderer>> renFFTVector;
+    // QVector<std::string> svgFileNamesVector;
     QToolButton* simToolButton;
     QMenu* simActiveMenu;
     QHash<int, QAction*> simActionMap;
-    QFutureWatcher<void> fftWatcher;
+    SAXSsim* currentSim_;
 
     void createActions();
     void createToolBars();
-    void createStatusBar();
-    // void createContextMenus();
+    // void createStatusBar();
+    void createContextMenus();
+    void createSimButton();
+    void addSimAction();
 
-    QAction *openAct;
+    QAction *newSimAct;
     QAction *exitAct;
     QThread *thread_      = 0; // TODO:Use global pool thread?
+    WorkerSim *workerSim_ = 0;
     Ui::MainWindow *ui;
+    QAction *newPlotAct;
+    // QString filterSVGFile(
+    //         const std::string & inputSVGFile);
 private slots:
-    void createNewDialog();
-    void newSim(std::string imgName);
+    // void createPlotDialog();
+    // void drawPlot(
+    //         double nm_per_pixel,
+    //         std::string format,
+    //         std::string outputFile);
+    // void ShowContextMenuPlot(const QPoint& pos);
 };
 #endif /* MAINWINDOW_H_ */

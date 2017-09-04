@@ -16,16 +16,25 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#include "mainwindow.h"
-#include "QApplication"
-#include <iostream>
-int main (int argc, char **argv)
+
+#ifndef RADIALTABWIDGET_H_
+#define RADIALTABWIDGET_H_
+
+#include "ui_radialtabwidget.h"
+
+namespace Ui
 {
-    QApplication app(argc, argv);
-    app.setApplicationName("FFT-RadialIntensity");
-    MainWindow mainWin;
-
-    mainWin.show();
-    app.exec();
-
+class RadialTabWidget;
 }
+
+class RadialTabWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit RadialTabWidget(QWidget *parent = 0);
+    virtual  ~RadialTabWidget();
+private:
+    Ui::RadialTabWidget *ui;
+};
+#endif

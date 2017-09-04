@@ -16,16 +16,28 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#include "mainwindow.h"
-#include "QApplication"
-#include <iostream>
-int main (int argc, char **argv)
+#ifndef WORKERSIM_H_
+#define WORKERSIM_H_
+#include "SAXSsim.h"
+#include <memory>
+#include <QtWidgets/QPlainTextEdit>
+
+Q_DECLARE_METATYPE(std::shared_ptr<SAXSsim> )
+Q_DECLARE_METATYPE(QString)
+Q_DECLARE_METATYPE(std::string)
+
+// Q_DECLARE_METATYPE(QPlainTextEdit*)
+class WorkerSim : public QObject
 {
-    QApplication app(argc, argv);
-    app.setApplicationName("FFT-RadialIntensity");
-    MainWindow mainWin;
-
-    mainWin.show();
-    app.exec();
-
-}
+    Q_OBJECT
+public:
+signals:
+    void onFinishRun(std::shared_ptr<SAXSsim>);
+    void onFinish();
+public slots:
+    void runSim(std::string imgName, std::string outputPlotName,
+            int num_threads, bool saveToFile);
+public:
+    std::shared_ptr<SAXSsim> m_sim;
+};
+#endif

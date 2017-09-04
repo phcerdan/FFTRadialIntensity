@@ -9,7 +9,7 @@ ExternalProject_Add(
     GIT_REPOSITORY https://github.com/philsquared/Catch.git
     TIMEOUT 10
     UPDATE_COMMAND ${GIT_EXECUTABLE} pull
-    # UPDATE_DISCONNECTED 1
+    UPDATE_DISCONNECTED 1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""

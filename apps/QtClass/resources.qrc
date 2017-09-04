@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>./resources/open.png</file>
+    <file>./resources/save.png</file>
+    <file>./resources/network-64.png</file>
+    <file>./resources/histogram.jpeg</file>
+    <file>./resources/ggplot2.png</file>
+</qresource>
+</RCC>

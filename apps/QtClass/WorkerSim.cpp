@@ -16,16 +16,21 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#include "mainwindow.h"
-#include "QApplication"
-#include <iostream>
-int main (int argc, char **argv)
-{
-    QApplication app(argc, argv);
-    app.setApplicationName("FFT-RadialIntensity");
-    MainWindow mainWin;
+#include "WorkerSim.h"
+using namespace std;
 
-    mainWin.show();
-    app.exec();
+void WorkerSim::runSim(std::string imgName, std::string outputPlotName,
+        int num_threads, bool saveToFile)
+{
+    qRegisterMetaType<std::shared_ptr<SAXSsim> >();
+    qRegisterMetaType<QString>();
+    // qRegisterMetaType<QString*>();
+    try {
+        m_sim = make_shared<SAXSsim>(imgName, outputPlotName, num_threads, saveToFile);
+    } catch(std::exception &e){
+        std::cout << e.what() << std::endl;
+    }
+    emit(onFinishRun(m_sim));
+    emit(onFinish());
 
 }

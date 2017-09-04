@@ -17,212 +17,13 @@
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
 #include <QtWidgets>
+#include <QtConcurrent/QtConcurrent>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "newdialog.h"
-#include "rdialog.h"
 #include <QVector>
 using namespace std;
 
-void MainWindow::on_currentSimSwitch(size_t element)
-{
-    // Re-render widgets.
-    // ui->qvtkWidgetInput->SetRenderWindow(renInputVector[element]->GetRenderWindow());
-    // renInputVector[element]->Render();
-    // ui->qvtkWidgetFFT->GetRenderWindow()->AddRenderer(renFFTVector[element]);
-    renderInputTypeImage();
-    renderFFTWindowed();
-#ifdef ENABLE_R
-    // If every sim has associated an RPlot;
-    if(svgFileNamesVector.size() == simVector.size())
-    {
-        auto qSvgFile = QString::fromStdString(svgFileNamesVector[element]);
-        ui->svgWidgetRplot->load(qSvgFile);
-    }
-
-#endif
-
-}
-void MainWindow::addSimAction()
-{
-
-    size_t elements = simActionMap.count() ;
-    simActionMap.insert(elements,
-
-            new QAction(QIcon(":/resources/network-64.png"), QString::number(elements), this)
-            );
-    auto &simAction = simActionMap[elements];
-    simActiveMenu->addAction(simAction);
-
-    connect(simAction, &QAction::triggered,
-            [=](){
-            currentSim_ = simVector[elements].get();
-            emit(currentSimSwitch(elements));
-            cout << elements <<endl;
-            });
-}
-void MainWindow::createSimButton()
-{
-
-    if (simActionMap.isEmpty()) {
-        simActiveMenu = new QMenu;
-        addSimAction();
-        simToolButton = new QToolButton;
-        simToolButton->setPopupMode(QToolButton::MenuButtonPopup);
-        simToolButton->setMenu(simActiveMenu);
-        auto &simAction = simActionMap[0];
-        simToolButton->setDefaultAction(simAction);
-
-        ui->toolBar->addWidget(simToolButton);
-    }
-    else {
-        addSimAction();
-    }
-    // simToolButton->setStatusTip(tr("Select simulation"));
-}
-void MainWindow::createNewDialog()
-{
-
-    NewDialog* newDialog = new NewDialog(this);
-    connect(newDialog, &NewDialog::newSimFromDialog, newDialog, &NewDialog::hide);
-    connect(newDialog, &NewDialog::newSimFromDialog, this, &MainWindow::newSim);
-    newDialog->exec();
-    delete newDialog;
-}
-void MainWindow::workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim)
-{
-    simVector.push_back(inputSim);
-    currentSim_ = simVector.back().get();
-    createSimButton();
-    ui->qvtkWidgetInput->show();
-    ui->qvtkWidgetFFT->show();
-    ui->svgWidgetRplot->hide();
-    currentSim_->ScaleForVisualization();
-    renderInputTypeImage();
-    renderFFTWindowed();
-    newSimAct->setEnabled(true);
-#ifdef ENABLE_R
-    newRAct->setEnabled(true);
-#endif
-}
-
-void MainWindow::newSim(string imgName, string outputPlotName, int num_threads, bool saveToFile)
-{
-    ui->tabWidget->setCurrentIndex(0);
-    ui->scrollArea->show();
-    thread_    = new QThread(this);
-    workerSim_ = new WorkerSim;
-    qRegisterMetaType<QString>();
-    qRegisterMetaType<std::string>();
-    qRegisterMetaType<std::shared_ptr<SAXSsim> >();;
-    connect(this, &MainWindow::runWorkerSim,
-            workerSim_, &WorkerSim::runSim);
-    connect(workerSim_, &WorkerSim::onFinishRun,
-            this,&MainWindow::workerSimHasFinished, Qt::BlockingQueuedConnection) ;
-
-    connect( workerSim_, SIGNAL(onFinish()), thread_, SLOT(quit())) ;
-    connect( workerSim_, SIGNAL(onFinish()), workerSim_, SLOT(deleteLater())) ;
-    connect( thread_, SIGNAL(finished()), thread_, SLOT(deleteLater()) );
-    workerSim_->moveToThread(thread_);
-    thread_->start();
-
-    newSimAct->setEnabled(false);
-    emit(this->runWorkerSim(imgName, outputPlotName, num_threads, saveToFile));
-    // emit(this->runWorkerSimWithMessenger(imgName, outputPlotName, num_threads, saveToFile, ui->textEditConsole));
-
-}
-
-void MainWindow::createContextMenus()
-{
-    ui->qvtkWidgetFFT->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->qvtkWidgetFFT, SIGNAL(customContextMenuRequested(const QPoint&)),
-            this, SLOT(ShowContextMenuQVTKFFT(const QPoint&)));
-
-#ifdef ENABLE_R
-    ui->svgWidgetRplot->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->svgWidgetRplot, SIGNAL(customContextMenuRequested(const QPoint&)),
-            this, SLOT(ShowContextMenuRplot(const QPoint&)));
-#endif
-}
-
-void MainWindow::ShowContextMenuQVTKFFT(const QPoint& pos)
-{
-    QPoint globalPos =ui->qvtkWidgetFFT->mapToGlobal(pos);
-
-    QMenu myMenu;
-    myMenu.addAction("Original (Windowed)", this, SLOT(renderFFTWindowed()));
-    myMenu.addAction("Write this log(FFTModulus) to disk", this, SLOT(writeFFTImageToDisk()));
-    myMenu.exec(globalPos);
-}
-void MainWindow::renderInputTypeImage()
-{
-
-    auto &sim = currentSim_;
-    auto connector   = ConnectorInputType::New();
-    connector->SetInput(sim->inputImg_);
-    connector->Update();
-    auto actor = vtkSmartPointer<vtkImageActor>::New();
-    actor->GetMapper()->SetInputData(connector->GetOutput());
-    auto renderer = vtkSmartPointer<vtkRenderer>::New();
-    renderer->AddActor(actor);
-    auto style =
-        vtkSmartPointer<vtkInteractorStyleImage>::New();
-    ui->qvtkWidgetInput->GetRenderWindow()->AddRenderer(renderer);
-    ui->qvtkWidgetInput->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
-    // Old style:
-    // ui->qvtkWidgetInput->SetRenderWindow(renderer->GetRenderWindow());
-    // renderer->Render();
-    renderer->ResetCamera();
-    ui->qvtkWidgetInput->GetRenderWindow()->Render();
-
-}
-void MainWindow::renderFFTWindowed()
-{
-    auto &sim = currentSim_;
-    auto connector   = ConnectorRealType::New();
-    m_fftVisualizationReal  =
-        sim->WindowingFFT(
-                sim->fftVisualization_, sim->intensitiesVisualization_[1], 255
-                );
-    connector->SetInput(m_fftVisualizationReal);
-    connector->Update();
-    auto actor = vtkSmartPointer<vtkImageActor>::New();
-    actor->GetMapper()->SetInputData(connector->GetOutput());
-    auto renderer = vtkSmartPointer<vtkRenderer>::New();
-    renderer->AddActor(actor);
-    auto style =
-        vtkSmartPointer<vtkInteractorStyleImage>::New();
-    ui->qvtkWidgetFFT->GetRenderWindow()->AddRenderer(renderer);
-    ui->qvtkWidgetFFT->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
-    renderer->ResetCamera();
-    ui->qvtkWidgetFFT->GetRenderWindow()->Render();
-
-}
-void MainWindow::writeFFTImageToDisk()
-{
-
-    // setDefaultSuffix is not working with getSaveFileName shortcut:
-    // QString fileName = fileDialog->getSaveFileName(this,tr("Save FFT"), QDir::currentPath(), filter);
-    QFileDialog *fileDialog = new QFileDialog(this);
-    fileDialog->setAcceptMode(QFileDialog::AcceptSave);
-    QString filter = tr("Float supported(*.tiff)");
-    fileDialog->setNameFilter(filter);
-    fileDialog->setDirectory(QDir::currentPath());
-    fileDialog->setDefaultSuffix("tiff");
-    fileDialog->setWindowTitle(tr("Save FFT as:"));
-    fileDialog->exec();
-    QString fileName = fileDialog->selectedFiles().first();
-    delete fileDialog;
-    auto &sim = currentSim_;
-    try {
-        sim->WriteFFT(sim->fftModulusSquare_, fileName.toStdString());
-    }
-    catch (std::exception & e){
-
-        std::cout << e.what() << std::endl;
-    }
-
-}
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -231,31 +32,31 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     createToolBars();
     createStatusBar();
-    createContextMenus();
+    // createContextMenus();
     simToolButton = nullptr;
     simActiveMenu = nullptr;
-    ui->qvtkWidgetInput->hide();
-    ui->qvtkWidgetFFT->hide();
-    ui->svgWidgetRplot->hide();
-    ui->scrollArea->hide();
-#ifdef ENABLE_R
-    createRMenus();
-    newRAct->setEnabled(false);
-#endif
-    connect(this, &MainWindow::currentSimSwitch,
-            this, &MainWindow::on_currentSimSwitch);
+    ui->tabWidget->clear();
+
+    connect(ui->tabWidget, &QTabWidget::tabCloseRequested,
+            [=] (const int & index){
+            // std::cout << "Closing index: " << index << std::endl;
+            ui->tabWidget->removeTab(index);
+            // auto page = ui->tabWidget->widget(index);
+            // if (page != nullptr)
+            // {
+            //     page->deleteLater();
+            // }
+            }
+           );
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete newSimAct;
+    delete openAct;
     delete exitAct;
     if(simToolButton!=nullptr) delete simToolButton;
     if(simActiveMenu!=nullptr) delete simActiveMenu;
-#ifdef ENABLE_R
-    delete newRAct;
-#endif
     for(QAction* & act : simActionMap.values())
     {
         delete act;
@@ -264,10 +65,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::createActions()
 {
-    newSimAct = new QAction(QIcon(":/resources/open.png"), tr("&Create a new FFT From Image."), this);
-    newSimAct->setShortcuts(QKeySequence::Open);
-    newSimAct->setStatusTip(tr("Create a new FFT From Image"));
-    connect(newSimAct, SIGNAL(triggered()), this, SLOT(createNewDialog()));
+    openAct = new QAction(QIcon(":/resources/open.png"), tr("&Create a new FFT From Image."), this);
+    openAct->setShortcuts(QKeySequence::Open);
+    openAct->setStatusTip(tr("Create a new FFT From Image"));
+    connect(openAct, SIGNAL(triggered()), this, SLOT(createNewDialog()));
 
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
@@ -277,7 +78,7 @@ void MainWindow::createActions()
 }
 void MainWindow::createToolBars()
 {
-    ui->toolBar->addAction(newSimAct);
+    ui->toolBar->addAction(openAct);
 }
 
 void MainWindow::createStatusBar()
@@ -285,120 +86,71 @@ void MainWindow::createStatusBar()
     ui->statusbar->showMessage(tr("Ready"));
 }
 
+// void MainWindow::on_currentSimSwitch(size_t element)
+// {
+//     renderInputTypeImage();
+//     renderFFTWindowed();
+// }
 
-#ifdef ENABLE_R
-void MainWindow::createRMenus()
+void MainWindow::createNewDialog()
 {
-
-    newRAct = new QAction(QIcon(":/resources/ggplot2.png"), tr("&Use R script to plot current sim"), this);
-    // newRAct->setShortcuts(QKeySequence::Open);
-    newRAct->setStatusTip(tr("Create a R plot from sim"));
-    connect(newRAct, SIGNAL(triggered()), this, SLOT(createRDialog()));
-
-    ui->toolBar->addAction(newRAct);
+    NewDialog* newDialog = new NewDialog(this);
+    connect(newDialog, &NewDialog::newSimFromDialog, newDialog, &NewDialog::hide);
+    connect(newDialog, &NewDialog::newSimFromDialog, this, &MainWindow::newSim);
+    newDialog->exec();
+    delete newDialog;
 }
 
-void MainWindow::createRDialog()
+// Note that widgets (tabs) must live in main thread.
+// If multi-thread is required, the computation should be handled in other thread, and report back to the tabWidget when finished.
+void MainWindow::newSim(std::string imgName)
 {
-    RDialog * rdialog = new RDialog(this);
-    connect(rdialog, &RDialog::newRplotFromDialog, this, &MainWindow::drawRPlot);
-    // Set default outputFile.
-    auto &sim = currentSim_;
-    string outputFileRplot;
-    size_t lastdot = sim->GetOutputName().find_last_of(".");
-    if (lastdot == std::string::npos){
-        outputFileRplot = sim->GetOutputName() + "." + "svg";
-    } else {
-        outputFileRplot = sim->GetOutputName().substr(0, lastdot) + "." + "svg";
-    }
-
-    rdialog->setOutputTextEdit(outputFileRplot);
-    rdialog->exec();
-    delete rdialog;
-}
-
-void MainWindow::drawRPlot(
-        double nm_per_pixel,
-        std::string format,
-        std::string outputRFile)
-{
-    auto &sim = currentSim_;
-
-    string modString;
-    size_t lastdot = outputRFile.find_last_of(".");
-    if (lastdot == std::string::npos){
-        modString = outputRFile + "." + format;
-    } else {
-        modString = outputRFile.substr(0, lastdot) + "." + format;
-    }
-    sim->GeneratePlotVisualizationFile(
-                sim->GetOutputName(),
-                nm_per_pixel,
-                format,
-                modString
-                /*RscriptFile*/
-                );
-
-    string svgString{modString};
-    // Generate extra output (svg is a must to visualize)
-    if(format!="svg")
+    // Always add a tab with newSim
+    auto tab = new RadialTabWidget();
+    // Populate the tab
+    connect(&this->fftWatcher, SIGNAL(finished()), tab, SLOT(SetRadialPlot2D()));
     {
-        format = "svg";
-        string modString;
-        size_t lastdot = outputRFile.find_last_of(".");
-        if (lastdot == std::string::npos){
-            modString = outputRFile + "." + format;
-        } else {
-            modString = outputRFile.substr(0, lastdot) + "." + format;
-        }
-        sim->GeneratePlotVisualizationFile(
-                    sim->GetOutputName(),
-                    nm_per_pixel,
-                    format,
-                    modString
-                    /*RscriptFile*/
-                    );
-        svgString = modString;
+        tab->SetInput2D(imgName);
+        QFuture<void> fftFuture = QtConcurrent::run(tab, &RadialTabWidget::SetFFT2D);
+        fftWatcher.setFuture(fftFuture);
+        // tab->SetFFT2D();
+        // tab->SetRadialPlot2D();
     }
+    auto info = QFileInfo(QString::fromLocal8Bit(imgName.c_str()));
+    auto filename = info.fileName();
 
-    svgFileNamesVector.push_back(svgString);
-    ui->svgWidgetRplot->load(
-            filterSVGFile(svgString));
-    ui->svgWidgetRplot->show();
-    ui->tabWidget->setCurrentWidget(ui->svgWidgetRplot);
+    tab->setObjectName(filename);
+    ui->tabWidget->addTab(tab, filename);
+    ui->tabWidget->setTabText(ui->tabWidget->indexOf(tab), QApplication::translate("MainWindow", filename.toStdString().c_str(), Q_NULLPTR));
+    ui->tabWidget->setCurrentWidget(tab);
+    ui->tabWidget->tabBar()->show();
+    // thread_    = new QThread(this);
+    // ui->scrollArea->show();
+    // workerSim_ = new WorkerSim;
+    // qRegisterMetaType<QString>();
+    // qRegisterMetaType<std::string>();
+    // qRegisterMetaType<std::shared_ptr<SAXSsim> >();;
+    // connect(this, &MainWindow::runWorkerSim,
+    //         workerSim_, &WorkerSim::runSim);
+    // connect(workerSim_, &WorkerSim::onFinishRun,
+    //         this,&MainWindow::workerSimHasFinished, Qt::BlockingQueuedConnection) ;
 
-}
+    // connect( workerSim_, SIGNAL(onFinish()), thread_, SLOT(quit())) ;
+    // connect( workerSim_, SIGNAL(onFinish()), workerSim_, SLOT(deleteLater())) ;
+    // connect( thread_, SIGNAL(finished()), thread_, SLOT(deleteLater()) );
+    // workerSim_->moveToThread(thread_);
+    // thread_->start();
 
-QString MainWindow::filterSVGFile(const std::string & inputSVGFile) {
-    // cairoDevice creates richer SVG than Qt can display
-    // but per Michaele Lawrence, a simple trick is to s/symbol/g/ which we do here
-    QFile infile(QString::fromStdString(inputSVGFile));
-    infile.open(QFile::ReadOnly);
-    QFile outfile(QString::fromStdString(inputSVGFile + "tmp"));
-    outfile.open(QFile::WriteOnly | QFile::Truncate);
-
-    QTextStream in(&infile);
-    QTextStream out(&outfile);
-    QRegExp rx1("<symbol");
-    QRegExp rx2("</symbol");
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        line.replace(rx1, "<g"); // so '<symbol' becomes '<g ...'
-        line.replace(rx2, "</g");// and '</symbol becomes '</g'
-        out << line << "\n";
-    }
-    infile.close();
-    outfile.close();
-    infile.remove();
-    outfile.rename(infile.fileName());
-    return outfile.fileName();
+    // openAct->setEnabled(false);
+    // emit(this->runWorkerSim(imgName, outputPlotName, num_threads, saveToFile));
+    // emit(this->runWorkerSimWithMessenger(imgName, outputPlotName, num_threads, saveToFile, ui->textEditConsole));
 
 }
-void MainWindow::ShowContextMenuRplot(const QPoint& pos)
-{
-    QPoint globalPos =ui->qvtkWidgetFFT->mapToGlobal(pos);
-    QMenu myMenu;
-    myMenu.addAction("Replot", this, SLOT(createRDialog())) ;
-    myMenu.exec(globalPos);
-}
-#endif
+
+// void MainWindow::ShowContextMenuPlot(const QPoint& pos)
+// {
+//     QPoint globalPos =ui->qvtkWidgetFFT->mapToGlobal(pos);
+//     QMenu myMenu;
+//     myMenu.addAction("Replot", this, SLOT(createRDialog())) ;
+//     myMenu.exec(globalPos);
+// }

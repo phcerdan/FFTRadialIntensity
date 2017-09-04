@@ -16,16 +16,38 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#include "mainwindow.h"
-#include "QApplication"
-#include <iostream>
-int main (int argc, char **argv)
+#ifndef NEWDIALOG_H_
+#define NEWDIALOG_H_
+
+#include "ui_newdialog.h"
+#include <QPlainTextEdit>
+#include <QDialog>
+#include <QFileDialog>
+
+namespace Ui
 {
-    QApplication app(argc, argv);
-    app.setApplicationName("FFT-RadialIntensity");
-    MainWindow mainWin;
-
-    mainWin.show();
-    app.exec();
-
+class NewDialog;
 }
+
+class NewDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit NewDialog(QWidget *parent = 0);
+    virtual  ~NewDialog();
+public slots:
+    void browseOpenFile();
+    void browseSaveFile();
+    void on_acceptedSettings();
+signals:
+    void newSimFromDialog(std::string imgName, std::string outputPlotName, int num_threads, bool saveToFile );
+public:
+    QString inputImage;
+    QString outputPlot;
+    bool saveToFile;
+    int numThreads;
+private:
+    Ui::NewDialog *ui;
+};
+#endif

@@ -6,92 +6,47 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1097</width>
-    <height>810</height>
+    <width>814</width>
+    <height>651</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
       </property>
-      <widget class="QTabWidget" name="tabWidget">
-       <property name="currentIndex">
-        <number>2</number>
-       </property>
-       <widget class="QVTKWidget" name="qvtkWidgetInput">
-        <attribute name="title">
-         <string>InputImage</string>
-        </attribute>
-       </widget>
-       <widget class="QVTKWidget" name="qvtkWidgetFFT">
-        <attribute name="title">
-         <string>FFT</string>
-        </attribute>
-       </widget>
-       <widget class="QSvgWidget" name="svgWidgetRplot">
-        <attribute name="title">
-         <string>Rplot</string>
-        </attribute>
-       </widget>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>true</bool>
+      </property>
+      <property name="movable">
+       <bool>true</bool>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
+      </property>
+      <widget class="RadialTabWidget" name="tab">
+       <attribute name="title">
+        <string>Tab 1</string>
+       </attribute>
       </widget>
-      <widget class="QScrollArea" name="scrollArea">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>70</height>
-        </size>
-       </property>
-       <property name="verticalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
-       </property>
-       <property name="widgetResizable">
-        <bool>true</bool>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-       </property>
-       <widget class="QWidget" name="scrollAreaWidgetContents">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>1077</width>
-          <height>72</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_5">
-         <property name="leftMargin">
-          <number>1</number>
-         </property>
-         <property name="topMargin">
-          <number>1</number>
-         </property>
-         <property name="rightMargin">
-          <number>1</number>
-         </property>
-         <property name="bottomMargin">
-          <number>1</number>
-         </property>
-         <property name="horizontalSpacing">
-          <number>1</number>
-         </property>
-         <item row="0" column="0">
-          <widget class="QPlainTextEdit" name="textEditConsole"/>
-         </item>
-        </layout>
-       </widget>
+      <widget class="RadialTabWidget" name="tab_2">
+       <attribute name="title">
+        <string>Tab 2</string>
+       </attribute>
       </widget>
      </widget>
     </item>
@@ -102,24 +57,15 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1097</width>
-     <height>19</height>
+     <width>814</width>
+     <height>25</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
-   <property name="contextMenuPolicy">
-    <enum>Qt::PreventContextMenu</enum>
-   </property>
    <property name="windowTitle">
     <string>toolBar</string>
-   </property>
-   <property name="movable">
-    <bool>false</bool>
-   </property>
-   <property name="floatable">
-    <bool>true</bool>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -128,26 +74,15 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <action name="actionSim1">
-   <property name="text">
-    <string>Sim1</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QVTKWidget</class>
+   <class>RadialTabWidget</class>
    <extends>QWidget</extends>
-   <header>QVTKWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QSvgWidget</class>
-   <extends>QWidget</extends>
-   <header>qsvgwidget.h</header>
+   <header>radialtabwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

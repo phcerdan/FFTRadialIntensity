@@ -2,6 +2,7 @@
   "name": "tem-saxs-visualization",
   "version": "0.0.1",
   "dependencies": {
-    "d3": "4"
+    "d3": "4",
+    "http-server": "^0.10.0"
   }
 }

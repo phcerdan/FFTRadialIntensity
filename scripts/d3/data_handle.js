@@ -1,7 +1,5 @@
-require(["d3"], function(d3) {
-  console.log(d3.version);
-// }); // End of require d3
-// var d3 = require('./d3/d3.js');
+var d3 = require('d3');
+console.log(d3.version);
 var data_file = "./data/disc20_functional_plot2.csv";
 // d3.text("disc20_functional_plot2.txt")
 // d3.csv(data_file, function(error, data) {
@@ -28,4 +26,3 @@ d3.csv(data_file, function(text) {
 // var svg = d3.select("body").append("svg").attr("height","100%").attr("width","100%");
 // svg.append("path").attr("d",area(dataArray));
 //
-}); // End of require d3

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-import os
 import sys
-import numpy as np
 import pandas as pd
 from itertools import takewhile
 import matplotlib
@@ -10,13 +8,33 @@ import argparse
 
 
 def parse_args(args):
-    parser = argparse.ArgumentParser(description='Plot q vs I data files')
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input_data', required=True, help = 'Input, it could be a csv, or a custom space separated. See --csv')
-    parser.add_argument('--csv', required=False, default=False, help='Select true if data is in csv format: one header, comma separated')
-    parser.add_argument('-s', '--save_output', required=False, default=False, help='Save a figure, set up output_file as well')
-    parser.add_argument('-o', '--output_file', required=False, default='', help='Output figure, choose format with -f')
-    parser.add_argument('-f', '--output_format', required=False, default='svg', help='Format for savefig')
+    parser = argparse.ArgumentParser(
+        description='Plot q vs I data files')
+    parser.add_argument(
+        '-i', '--input_data',
+        required=True,
+        help='Input, it could be a csv, or a custom space separated. See --csv')
+    parser.add_argument(
+        '--csv',
+        required=False, default=False,
+        help='Select true if data is in csv format: one header, comma separated')
+    parser.add_argument(
+        '-s', '--save_output',
+        required=False, default=False,
+        help='Save a figure, set up output_file as well')
+    parser.add_argument(
+        '-o', '--output_file',
+        required=False, default='',
+        help='Output figure, choose format with -f')
+    parser.add_argument(
+        '-f', '--output_format',
+        required=False, default='svg',
+        help='Format for savefig')
+    parser.add_argument(
+        '-nm', '--nm_per_pixel',
+        required=False, default=1.0,
+        type=float,
+        help='q range is scaled to the pixel resolution of the image')
     return parser.parse_args(args)
 
 
@@ -42,10 +60,10 @@ def parse_header (input_file, is_csv):
             headers += h.replace('#', '').replace('\n', '').strip().split('=')
 
     return {
-            'name': headers[1],
-            'Nx': int(headers[3]),
-            'Ny': int(headers[5])
-           }
+        'name': headers[1],
+        'Nx': int(headers[3]),
+        'Ny': int(headers[5])
+    }
 # }}}
 
 # Parse Data {{{
@@ -61,28 +79,44 @@ def parse_data(input_file, is_csv):
     return data
 # }}}
 
+def scale_q(q_data, nm_per_pixel = 1):
+    """ scale q range based on nm_per_pixel at size of image """
+    # Nx = dicto_header['Nx']
+    # Ny = dicto_header['Ny']
+    # dx = nm_per_pixel
+    # dy = nm_per_pixel
+    # dfx = 1.0 / (Nx*dx)
+    # dfy = 1.0 / (Ny*dy)
+    # q_data *= max(dfx, dfy)
+    # Other approach:
+    q_size = q_data.size - 1 if q_data.size % 2 == 1 else q_data.size
+    # multiply by 2 because q_size = min(Nx,Ny)/2 (from c++ code)
+    dq = 1.0 / (q_size * 2) * 1.0/nm_per_pixel
+
+    return q_data * dq
+
 # Plot Data {{{
 def plot_data(data, plot_name='', save=False, output_file='', output_format='svg'):
     # Paper quality options: {{{
     # https://github.com/jbmouret/matplotlib_for_papers#a-publication-quality-figure
     # for a list: matplotlib.rcParams
     params = {
-       'xtick.top': True,
-       'ytick.right': True,
-       'axes.linewidth': 1.2,
-       'axes.grid': True,
-       'axes.grid.axis': 'both',
-       'grid.color': 'gainsboro',
-       'font.family': 'sans-serif',
-       # 'font.sans-serif': 'Helvetica',
-       'font.size': 8,
-       'axes.labelsize': 8,
-       'legend.fontsize': 10,
-       'xtick.labelsize': 10,
-       'ytick.labelsize': 10,
-       'text.usetex': True,
-       'figure.figsize': [4.5, 4.5]
-       }
+        'xtick.top': True,
+        'ytick.right': True,
+        'axes.linewidth': 1.2,
+        'axes.grid': True,
+        'axes.grid.axis': 'both',
+        'grid.color': 'gainsboro',
+        'font.family': 'sans-serif',
+        # 'font.sans-serif': 'Helvetica',
+        'font.size': 8,
+        'axes.labelsize': 8,
+        'legend.fontsize': 10,
+        'xtick.labelsize': 10,
+        'ytick.labelsize': 10,
+        'text.usetex': True,
+        'figure.figsize': [4.5, 4.5]
+    }
     # }}}
     # plt.rcParams.update(plt.rcParamsDefault)
     matplotlib.style.use('grayscale')
@@ -111,6 +145,7 @@ def plot_data(data, plot_name='', save=False, output_file='', output_format='svg
     plt.show(block=True)
 # }}}
 
+
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
     is_csv = args.csv
@@ -118,9 +153,11 @@ if __name__ == "__main__":
     output_file = args.output_file
     output_format = args.output_format
     save_output = args.save_output
+    nm_per_pixel = args.nm_per_pixel
 
     header_dicto = parse_header(input_file, is_csv)
     data = parse_data(input_file, is_csv)
+    data['q'] = scale_q(data['q'], nm_per_pixel)
     plot_data(data,
               plot_name='',
               # plot_name=header_dicto['name'],

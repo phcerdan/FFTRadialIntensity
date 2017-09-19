@@ -5,6 +5,9 @@ from itertools import takewhile
 import matplotlib
 import matplotlib.pyplot as plt
 import argparse
+from matplotlib2tikz import save as tikz_save
+from cycler import cycler
+# import seaborn as sns
 
 
 def parse_args(args):
@@ -19,10 +22,6 @@ def parse_args(args):
         required=False, default=False,
         help='Select true if data is in csv format: one header, comma separated')
     parser.add_argument(
-        '-s', '--save_output',
-        required=False, default=False,
-        help='Save a figure, set up output_file as well')
-    parser.add_argument(
         '-o', '--output_file',
         required=False, default='',
         help='Output figure, choose format with -f')
@@ -35,11 +34,21 @@ def parse_args(args):
         required=False, default=1.0,
         type=float,
         help='q range is scaled to the pixel resolution of the image')
+    parser.add_argument(
+        '-im', '--intensity_multiplier',
+        required=False, default=1.0,
+        type=float,
+        help='multiply I [a.u] by a factor')
+    parser.add_argument(
+        '-qc', '--qcutoff',
+        required=False, default=0.1,
+        type=float,
+        help='draw a vertical line at this q value')
     return parser.parse_args(args)
 
 
 # Parse Header {{{
-def parse_header (input_file, is_csv):
+def parse_header (input_file, is_csv = False):
     # Parse Header {{{
     with open(input_file, 'r') as fobj:
         # takewhile returns an iterator over all the lines
@@ -67,7 +76,7 @@ def parse_header (input_file, is_csv):
 # }}}
 
 # Parse Data {{{
-def parse_data(input_file, is_csv):
+def parse_data(input_file, is_csv = False):
     if(is_csv):
         data = pd.read_csv(input_file, header=0,
                            names=['q', 'I'], usecols=[0, 1])
@@ -79,7 +88,17 @@ def parse_data(input_file, is_csv):
     return data
 # }}}
 
-def scale_q(q_data, nm_per_pixel = 1):
+def parse_saxs_data(input_file, nskiprows=1):
+    # input_file = "../R/Carragenan_K_1car30KCl10A__merged.dat"
+    # input_file = "~/Dropbox/shared-geelong-palmerston\ (copy)/Carrageenan/Carrageenan_K/1car30KCl10A_1259_long.dat"
+    # input_file = "~/Dropbox/shared-geelong-palmerston\ (copy)/Carrageenan/Carrageenan_K/1car30KCl10A_1243_short.dat"
+    # fileSaxsLong = "~/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_K/1car30KCl10A_1259_long.dat"
+
+    data = pd.read_csv(input_file, sep=' ', skipinitialspace=True, skiprows=nskiprows,
+                       names=['q', 'I'], usecols=[0, 1])
+    return data
+
+def scale_data(data, nm_per_pixel=1, I_multiplier=1):
     """ scale q range based on nm_per_pixel at size of image """
     # Nx = dicto_header['Nx']
     # Ny = dicto_header['Ny']
@@ -89,17 +108,28 @@ def scale_q(q_data, nm_per_pixel = 1):
     # dfy = 1.0 / (Ny*dy)
     # q_data *= max(dfx, dfy)
     # Other approach:
-    q_size = q_data.size - 1 if q_data.size % 2 == 1 else q_data.size
+    q_size = data['q'].size
+    q_size = q_size - 1 if q_size % 2 == 1 else q_size
     # multiply by 2 because q_size = min(Nx,Ny)/2 (from c++ code)
-    dq = 1.0 / (q_size * 2) * 1.0/nm_per_pixel
+    dq = 1.0 / (q_size * 2) * 1.0 / nm_per_pixel
+    out_data = data
+    out_data['q'] *= dq
+    out_data['I'] *= I_multiplier
+    return out_data
 
-    return q_data * dq
-
-# Plot Data {{{
-def plot_data(data, plot_name='', save=False, output_file='', output_format='svg'):
+def plot_params(dict_more_params={}):
     # Paper quality options: {{{
     # https://github.com/jbmouret/matplotlib_for_papers#a-publication-quality-figure
     # for a list: matplotlib.rcParams
+    width = 6.2  # inches
+    height = width / 1.618  # golden ratio
+    # matplotlib.style.use('grayscale')
+    # matplotlib.style.use('seaborn-deep')
+    # sns.set_palette(sns.color_palette("cubehelix", 8))
+    # sns.set_palette(sns.color_palette("Set1", n_colors=4))
+    # cmap = sns.cubehelix_palette(as_cmap=True)
+    # 'image.cmap': cmap,
+    # 'axes.prop_cycle': cycler(color=map(lambda x: 'C' + x, '031456789')),
     params = {
         'xtick.top': True,
         'ytick.right': True,
@@ -107,42 +137,61 @@ def plot_data(data, plot_name='', save=False, output_file='', output_format='svg
         'axes.grid': True,
         'axes.grid.axis': 'both',
         'grid.color': 'gainsboro',
-        'font.family': 'sans-serif',
+        'font.family': 'serif',
+        # 'font.family': 'sans-serif',
         # 'font.sans-serif': 'Helvetica',
-        'font.size': 8,
-        'axes.labelsize': 8,
-        'legend.fontsize': 10,
-        'xtick.labelsize': 10,
-        'ytick.labelsize': 10,
+        'font.size': 12,
+        'axes.labelsize': 16,
+        'legend.fontsize': 12,
+        'xtick.labelsize': 14,
+        'ytick.labelsize': 14,
         'text.usetex': True,
-        'figure.figsize': [4.5, 4.5]
+        'figure.figsize': [width, height],
+        'figure.facecolor': 'w',
+        'figure.frameon': False
     }
+    for k, v in dict_more_params.items():
+        params[k] = v
     # }}}
     # plt.rcParams.update(plt.rcParamsDefault)
-    matplotlib.style.use('grayscale')
-    # matplotlib.style.use('seaborn')
     plt.rcParams.update(params)
+
+# Plot Data {{{
+def plot_data(data, axes=None, plot_name=''):
     # remove zero q for plotting.
-    ax = data[1:].plot.line('q', 'I', legend=False)
+    ax = data[1:].plot(x='q', y='I', legend=False, ax=axes)
     ax.set_title(plot_name)
     ax.set_xscale("log", nonposx='clip')
     ax.set_xlabel('q [$nm^{-1}$]')
     ax.set_yscale("log", nonposy='clip')
-    ax.set_ylabel('I')
+    ax.set_ylabel('I [A.U.]')
     ax.yaxis.grid(True, which='major')
-    ax.xaxis.grid(True, which='minor')
+    ax.xaxis.grid(True, which='major')
     ax.xaxis.set_minor_formatter(matplotlib.ticker.FormatStrFormatter(""))
+    return ax
 
+def plot_vline(qcutoff, data, ax):
     # Vertical line:
-    qcutoff = 5
-    plt.axvline(x=qcutoff, linestyle='dotted')
-    plt.axvspan(xmin=qcutoff, xmax=max(data['q']), color='whitesmoke')
+    # ax.axvline(x=qcutoff, linestyle='dotted', color='gray')
+    ax.axvspan(xmin=qcutoff, xmax=max(data['q']), color='whitesmoke')
+    return ax
 
-    if(save and output_file):
-        print(out_name)
-        plt.savefig(output_file + '.' + output_format, format=output_format)
+def plot_all_and_save(data, qcutoff=0.1, axes=None,
+                      plot_name='', output_file='', output_format='svg',
+                      show=True):
+    ax = plot_data(data, plot_name=plot_name, axes=axes)
+    ax = plot_vline(qcutoff, data, ax)
 
-    plt.show(block=True)
+    if(output_file):
+        if(output_format != 'tikz'):
+            plt.savefig(output_file + '.' + output_format, format=output_format)
+        else:
+            tikz_save(output_file + '.' + 'tikz')
+    else:
+        if(show):
+            plt.show(block=True)
+
+    return ax
 # }}}
 
 
@@ -152,16 +201,18 @@ if __name__ == "__main__":
     input_file = args.input_data
     output_file = args.output_file
     output_format = args.output_format
-    save_output = args.save_output
     nm_per_pixel = args.nm_per_pixel
+    intensity_multiplier = args.intensity_multiplier
+    qcutoff = args.qcutoff
 
     header_dicto = parse_header(input_file, is_csv)
     data = parse_data(input_file, is_csv)
-    data['q'] = scale_q(data['q'], nm_per_pixel)
-    plot_data(data,
-              plot_name='',
-              # plot_name=header_dicto['name'],
-              save=save_output, output_file=output_file,
-              output_format=output_format)
+    data = scale_data(data, nm_per_pixel, intensity_multiplier)
+    plot_all_and_save(data,
+                      qcutoff=qcutoff,
+                      plot_name='',
+                      # plot_name=header_dicto['name'],
+                      output_file=output_file,
+                      output_format=output_format)
 
 # vim: foldmethod=marker foldlevel=0

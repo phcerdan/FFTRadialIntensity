@@ -8,7 +8,7 @@
 # dmerged = mergeSaxs(long, short, 5 );
 # you can use write.table(dmerged, file=./mergedResult.txt) if you want to save the data.
 
-mergeSaxs <- function(fileSaxsLong, fileSaxsShort, removeIndexShort = 5, skipLong = 2, skipShort = 2, numcolsLong = 3, numcolsShort = 3) {
+mergeSaxs <- function(fileSaxsLong, fileSaxsShort, removeIndexShort = 5, skipLong = 2, skipShort = 2, numcolsLong = 3, numcolsShort = 3, eps = 0.01) {
     # fileSaxsLong = "/home/phc/Dropbox/Shared-Geelong-Palmerston/Carrageenan/Carrageenan_Na/1car300NaCl10A_1254_long.dat"
     if (numcolsLong==3) {
         dSaxsLong = read.table(fileSaxsLong, col.names=c("d", "I", "err"), row.names=NULL, skip=skipLong);
@@ -31,8 +31,7 @@ mergeSaxs <- function(fileSaxsLong, fileSaxsShort, removeIndexShort = 5, skipLon
     trimindex = as.integer(removeIndexShort);
     # trimindex = 10;
     qs1 = qSS[trimindex];
-    # Get the the closest values of qs1
-    eps = 0.01
+    # Get the the closest values of qs1 using eps
     qL_range = qSL[ qSL < qs1 + eps * qs1 & qSL > qs1 - eps * qs1];
     # Trim qL_range to 2 values:
     qL_range = c(qL_range[1], tail(qL_range, n=1));
@@ -64,8 +63,10 @@ mergeSaxs <- function(fileSaxsLong, fileSaxsShort, removeIndexShort = 5, skipLon
     #                      ) +
     #     scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x, n=3),
     #                      labels = trans_format("log10", math_format(10^.x))
-    #                      ) +
-    #     annotation_logticks(SCALED=FALSE)
-    # pmerge
+    #                      )
+    #     # annotation_logticks(SCALED=FALSE)
+    # print(pmerge)
+    # write.table(dmerged, "./Carragenan_Na_1car300NaCl10A_merged.dat", row.names=FALSE)
     dmerged;
+
 }

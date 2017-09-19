@@ -1,0 +1,27 @@
+1% Carrageenan
+
+Potasium: 30 mM K . Carrageenan 3,4,5 (Same gel, different images)
+Sodium: 300 mM Na
+
+Protocol:
+
+pixel size of 1x binned: 0.86nm
+2x binned: 1.72nm
+
+Reconstructions:
+K_Carrageenan 4:
+Area: 1881x1881 pixel image(1xBinned) = 1671 x 1671 nm^2
+	Volume: x95 slices = 1671 x 1671 x 81 nm^3
+
+K_Carrageenan 3:
+Area: 960 x 960 pixel (2xBinned) = 1651.2 x 1651.2 nm^2
+	Volume: x110 slices = 1651.2 x 1651.2 x 189.2 nm^3
+
+
+From Andrew: 
+All gel tomograms have been taken at nominal magnification 12,000X, and images with pixel dimensions between 1024 x1024 and2048x2048 are full resolution, so pixel size = 0.86 nm. I would have to go through them individually because there is always some clipping of areas during reconstruction to minimise the required disk space.
+
+Anything more than 512x512 but less than 1024x1024 will be 2x binned, so double the pixel size, etc..
+
+When it comes to 2D images – hard to say what mag. Often they contain header information, so if you open them in ImageJ, the dimensions might be shown above the image. But as I said, just let me know which ones.
+

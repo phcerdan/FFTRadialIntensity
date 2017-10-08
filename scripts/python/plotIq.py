@@ -157,9 +157,9 @@ def plot_params(dict_more_params={}):
     plt.rcParams.update(params)
 
 # Plot Data {{{
-def plot_data(data, axes=None, plot_name=''):
+def plot_data(data, axes=None, plot_name='', label=''):
     # remove zero q for plotting.
-    ax = data[1:].plot(x='q', y='I', legend=False, ax=axes)
+    ax = data[1:].plot(x='q', y='I', legend=False, ax=axes, label=label)
     ax.set_title(plot_name)
     ax.set_xscale("log", nonposx='clip')
     ax.set_xlabel('q [$nm^{-1}$]')

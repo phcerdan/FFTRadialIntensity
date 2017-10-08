@@ -20,7 +20,6 @@
 #include <string>
 #include <fstream>
 #include <exception>
-//TODO remove this.
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 struct po_help_exception: public std::runtime_error {

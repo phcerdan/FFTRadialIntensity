@@ -20,7 +20,7 @@
 #include <string>
 #include <fstream>
 #include <exception>
-using namespace std;
+//TODO remove this.
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 struct po_help_exception: public std::runtime_error {
@@ -35,9 +35,9 @@ po::variables_map program_options(const int &argc, char** const & argv)
     generic.add_options()
         ("version,v", "print version string")
         ("help,h", "produce help message")
-        ("input_img,i", po::value<string>()->required(),
+        ("input_img,i", po::value<std::string>()->required(),
               "input image.")
-        ("output,o", po::value<string>()->default_value(""),
+        ("output,o", po::value<std::string>()->default_value(""),
               "output result to file.")
         ;
 #ifdef ENABLE_PARALLEL
@@ -56,16 +56,16 @@ po::variables_map program_options(const int &argc, char** const & argv)
     store(po::command_line_parser(argc, argv).
           options(cmdline_options).run(), vm);
     if (vm.count("help") || !vm.count("input_img")) {
-        cout << visible << "\n";
+        std::cout << visible << "\n";
         throw po_help_exception("help exit");
     }
 
     notify(vm);
 
-    if (vm["output"].as<string>()!="") {
-        cout << "Output to : " + vm["output"].as<string>()<< "\n";
+    if (vm["output"].as<std::string>()!="") {
+        std::cout << "Output to : " + vm["output"].as<std::string>()<< "\n";
     } else {
-        cout << "Output to default directory" << "\n";
+        std::cout << "Output to default directory" << "\n";
     }
 
     return vm;

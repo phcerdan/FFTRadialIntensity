@@ -28,8 +28,8 @@ int main(int argc, char* argv[]){
 
     try {
         auto option_map = program_options(argc, argv);
-        string input = option_map["input_img"].as<string>();
-        string output = option_map["output"].as<string>();
+        std::string input = option_map["input_img"].as<std::string>();
+        std::string output = option_map["output"].as<std::string>();
         //TODO allow prog options to accept different dimensions
         using ImageType = itk::Image<float, 2>;
         const fs::path ipath{input};

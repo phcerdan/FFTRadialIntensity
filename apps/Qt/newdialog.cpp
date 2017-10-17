@@ -19,29 +19,26 @@
 #include "newdialog.h"
 using namespace std;
 
-NewDialog::NewDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::NewDialog)
-{
+NewDialog::NewDialog(QWidget *parent) : QDialog(parent), ui(new Ui::NewDialog) {
     ui->setupUi(this);
-    connect(ui->inputBrowseButton,SIGNAL(clicked()), this, SLOT(browseOpenFile()));
-    // connect(ui->outputBrowseButton,SIGNAL(clicked()), this, SLOT(browseSaveFile()));
+    connect(ui->inputBrowseButton, SIGNAL(clicked()), this,
+            SLOT(browseOpenFile()));
+    // connect(ui->outputBrowseButton,SIGNAL(clicked()), this,
+    // SLOT(browseSaveFile()));
     /// On accept send signal(via SLOT) to parent MainWindow.
-    connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(on_acceptedSettings()));
+    connect(ui->buttonBox, SIGNAL(accepted()), this,
+            SLOT(on_acceptedSettings()));
 }
 
-NewDialog::~NewDialog()
-{
-    delete ui;
-}
+NewDialog::~NewDialog() { delete ui; }
 
 /**
  * @brief Open a QFileDialog with open properties
  */
-void NewDialog::browseOpenFile()
-{
+void NewDialog::browseOpenFile() {
     QFileDialog *fileDialog = new QFileDialog(this);
-    QString fileName = fileDialog->getOpenFileName(this,tr("Image Path"), QDir::currentPath());
+    QString fileName = fileDialog->getOpenFileName(this, tr("Image Path"),
+                                                   QDir::currentPath());
     delete fileDialog;
     ui->inputTextEdit->setPlainText(fileName);
 }
@@ -59,13 +56,13 @@ void NewDialog::browseOpenFile()
 // }
 
 /**
- * @brief Transform QString to String, set members of dialog, and send newSimFromDialog signal, catched in MainWindow
+ * @brief Transform QString to String, set members of dialog, and send
+ * newSimFromDialog signal, catched in MainWindow
  */
-void NewDialog::on_acceptedSettings()
-{
+void NewDialog::on_acceptedSettings() {
     inputImage = ui->inputTextEdit->toPlainText();
     // outputPlot = ui->outputTextEdit->toPlainText();
     // saveToFile = ui->checkBoxSaveOutput;
 
-    emit(newSimFromDialog(inputImage.toStdString()) );
+    emit(newSimFromDialog(inputImage.toStdString()));
 }

@@ -20,34 +20,33 @@
 #define NEWDIALOG_H_
 
 #include "ui_newdialog.h"
-#include <QPlainTextEdit>
 #include <QDialog>
 #include <QFileDialog>
+#include <QPlainTextEdit>
 
-namespace Ui
-{
+namespace Ui {
 class NewDialog;
 }
 
-class NewDialog : public QDialog
-{
+class NewDialog : public QDialog {
     Q_OBJECT
 
-public:
+  public:
     explicit NewDialog(QWidget *parent = 0);
-    virtual  ~NewDialog();
-public slots:
+    virtual ~NewDialog();
+  public slots:
     void browseOpenFile();
     void on_acceptedSettings();
     // void browseSaveFile();
-signals:
+  signals:
     void newSimFromDialog(std::string imgName);
-public:
+
+  public:
     QString inputImage;
     // QString outputPlot;
     // bool saveToFile;
     // int numThreads;
-private:
+  private:
     Ui::NewDialog *ui;
 };
 #endif

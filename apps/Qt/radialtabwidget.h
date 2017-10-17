@@ -19,6 +19,7 @@
 
 #ifndef RADIALTABWIDGET_H_
 #define RADIALTABWIDGET_H_
+#include "radial_intensity.h"
 
 #include "QVTKWidget.h"
 #include <QtCore/QVariant>
@@ -57,7 +58,7 @@ class RadialTabWidget : public QMainWindow {
     void SetInput2D(std::string input_file);
     void SetFFT2D();
     void SetRadialPlot2D(double nm_per_pixel = 1.0);
-
+    void SaveRadialPlot2D(const radial_intensity::FlattenIntensities & mean_intensities, const std::string &fname, const radial_intensity::MetadataFields &metadata_fields);
   private:
     std::string input_filename;
     Image2DPointer inputImage2D;

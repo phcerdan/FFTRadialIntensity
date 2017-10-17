@@ -21,7 +21,6 @@
 #include "itkIntensityWindowingImageFilter.h"
 #include "itkLogImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
-#include "radial_intensity.h"
 #include "radialtabwidget.h"
 
 #include <vtkImageActor.h>
@@ -43,12 +42,13 @@
 #include <vtkPlot.h>
 #include <vtkTable.h>
 
+#include <boost/filesystem.hpp>
+
 RadialTabWidget::RadialTabWidget(QWidget *parent) : QMainWindow(parent) {
     // UI
     {
         if (this->objectName().isEmpty())
             this->setObjectName(QStringLiteral("this"));
-        this->resize(800, 600);
         this->setDockNestingEnabled(true);
         this->setWindowTitle(
             QApplication::translate("this", "RadialTabWidget", Q_NULLPTR));
@@ -242,6 +242,20 @@ void RadialTabWidget::SetRadialPlot2D(double nm_per_pixel) {
     // chart->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
 
     this->qvtkWidgetPlot->GetInteractor()->Initialize();
+
+    // this->SaveRadialPlot(avg_intensities, this->
+}
+
+void RadialTabWidget::SaveRadialPlot2D(const radial_intensity::FlattenIntensities & mean_intensities, const std::string &fname, const radial_intensity::MetadataFields &metadata_fields)
+{
+    namespace fs = boost::filesystem;
+    const fs::path opath{fname};
+    const fs::path abs_opath = fs::absolute(opath);
+    const auto dir = abs_opath.parent_path();
+    if (!fs::exists(dir))
+        fs::create_directory(dir);
+
+    radial_intensity::SaveRadialIntensityProfile(mean_intensities, opath.string(), metadata_fields);
 }
 // //Delete old chart and add new.
 //   view_[find_degree->first]->GetScene()->RemoveItem(static_cast<unsigned int>

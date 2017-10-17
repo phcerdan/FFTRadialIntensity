@@ -40,7 +40,8 @@ class NewDialog : public QDialog {
     void on_changedCheckBoxSave(int state);
     void browseSaveFile();
   signals:
-    void newSimFromDialog(std::string imgName);
+    void newSimFromDialog(std::string inputImageName);
+        // , std::string outputPlotFile);
 
   public:
     QString inputImage;

@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
     QApplication app(argc, argv);
     app.setApplicationName("FFT-RadialIntensity");
     MainWindow mainWin;
+    mainWin.setWindowTitle("FFTRadialIntensity");
 
     mainWin.show();
     app.exec();

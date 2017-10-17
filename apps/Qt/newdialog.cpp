@@ -17,17 +17,21 @@
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
 #include "newdialog.h"
-using namespace std;
 
 NewDialog::NewDialog(QWidget *parent) : QDialog(parent), ui(new Ui::NewDialog) {
     ui->setupUi(this);
     connect(ui->inputBrowseButton, SIGNAL(clicked()), this,
             SLOT(browseOpenFile()));
-    // connect(ui->outputBrowseButton,SIGNAL(clicked()), this,
-    // SLOT(browseSaveFile()));
+    connect(ui->outputBrowseButton, SIGNAL(clicked()), this,
+            SLOT(browseSaveFile()));
+    // Connect SaveCheckBox
+    connect(ui->checkBoxSaveOutput, SIGNAL(stateChanged(int)), this,
+            SLOT(on_changedCheckBoxSave(int)));
     /// On accept send signal(via SLOT) to parent MainWindow.
     connect(ui->buttonBox, SIGNAL(accepted()), this,
             SLOT(on_acceptedSettings()));
+    // The default is off, call the method to make it readOnly.
+    this->on_changedCheckBoxSave(0);
 }
 
 NewDialog::~NewDialog() { delete ui; }
@@ -36,7 +40,7 @@ NewDialog::~NewDialog() { delete ui; }
  * @brief Open a QFileDialog with open properties
  */
 void NewDialog::browseOpenFile() {
-    QFileDialog *fileDialog = new QFileDialog(this);
+    QFileDialog *fileDialog = new QFileDialog(this->parentWidget());
     QString fileName = fileDialog->getOpenFileName(this, tr("Image Path"),
                                                    QDir::currentPath());
     delete fileDialog;
@@ -46,14 +50,14 @@ void NewDialog::browseOpenFile() {
 /**
  * @brief Open a QFileDialog with save properties.
  */
-// void NewDialog::browseSaveFile()
-// {
-//     QFileDialog *fileDialog = new QFileDialog(this);
-//     QString fileName = fileDialog->getSaveFileName(this,"Save output .plot",
-//             QDir::currentPath(), tr("Plain text (*.plot)"));
-//     delete fileDialog;
-//     ui->outputTextEdit->setPlainText(fileName);
-// }
+void NewDialog::browseSaveFile() {
+    QFileDialog *fileDialog = new QFileDialog(this->parentWidget());
+    QString fileName = fileDialog->getSaveFileName(
+        this, "Save IvsF in plain text .plot", QDir::currentPath(),
+        tr("Plain text (*.plot)"));
+    delete fileDialog;
+    ui->outputTextEdit->setPlainText(fileName);
+}
 
 /**
  * @brief Transform QString to String, set members of dialog, and send
@@ -61,8 +65,14 @@ void NewDialog::browseOpenFile() {
  */
 void NewDialog::on_acceptedSettings() {
     inputImage = ui->inputTextEdit->toPlainText();
-    // outputPlot = ui->outputTextEdit->toPlainText();
-    // saveToFile = ui->checkBoxSaveOutput;
+    outputPlot = ui->outputTextEdit->toPlainText();
+    saveToFile = ui->checkBoxSaveOutput;
 
     emit(newSimFromDialog(inputImage.toStdString()));
+}
+
+void NewDialog::on_changedCheckBoxSave(int state) {
+    this->saveToFile = (state == 0) ? false : true;
+    ui->outputBrowseButton->setEnabled((saveToFile == false) ? false : true);
+    ui->outputTextEdit->setReadOnly((saveToFile == false) ? true : false);
 }

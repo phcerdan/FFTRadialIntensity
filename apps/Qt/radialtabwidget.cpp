@@ -207,35 +207,40 @@ void RadialTabWidget::SetRadialPlot2D(double nm_per_pixel) {
     vtkNew<vtkTable> table;
     table->SetNumberOfRows(nbins);
     vtkNew<vtkDoubleArray> qArray;
-    qArray->SetName("q");
+    qArray->SetName("k [ ]");
     qArray->SetNumberOfValues(nbins);
     table->AddColumn(qArray.GetPointer());
     vtkNew<vtkDoubleArray> intensityArray;
-    intensityArray->SetName("I");
+    intensityArray->SetName("I [A.U]");
     intensityArray->SetNumberOfValues(nbins);
     table->AddColumn(intensityArray.GetPointer());
     double df = histo_bins.bin_width / nm_per_pixel;
     for (std::size_t j = 0; j < nbins; j++) {
+        // Ignore the first (zero freq) value.
         intensityArray->SetValue(j, avg_intensities[j + 1]);
-        qArray->SetValue(j, j * df);
+        qArray->SetValue(j, (j + 1) * df);
     }
     // avoid log-scale problems with 0
     // qArray->SetValue(0, std::numeric_limits<double>::epsilon());
 
     auto chart = vtkSmartPointer<vtkChartXY>::New();
-    auto const &xAxis = chart->GetAxis(vtkAxis::BOTTOM);
-    xAxis->SetTitle("q");
-    xAxis->LogScaleOn();
-    // xAxis->SetBehavior(vtkAxis::FIXED);
-    auto const &yAxis = chart->GetAxis(vtkAxis::LEFT);
-    yAxis->SetTitle("I");
-    yAxis->LogScaleOn();
-    // chart->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
     auto chart_type = vtkChart::LINE;
     auto plot = chart->AddPlot(chart_type);
     plot->SetInputData(table.GetPointer(), 0, 1);
     // Add chart to plotView (member)
     plotView->GetScene()->AddItem(chart);
+
+    auto const &xAxis = chart->GetAxis(vtkAxis::BOTTOM);
+    xAxis->SetTitle("q");
+    xAxis->LogScaleOn();
+    xAxis->RecalculateTickSpacing();
+    // xAxis->SetBehavior(vtkAxis::FIXED);
+    auto const &yAxis = chart->GetAxis(vtkAxis::LEFT);
+    yAxis->SetTitle("I");
+    yAxis->LogScaleOn();
+    yAxis->RecalculateTickSpacing();
+    // chart->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
+
     this->qvtkWidgetPlot->GetInteractor()->Initialize();
 }
 // //Delete old chart and add new.

@@ -37,14 +37,15 @@ class NewDialog : public QDialog {
   public slots:
     void browseOpenFile();
     void on_acceptedSettings();
-    // void browseSaveFile();
+    void on_changedCheckBoxSave(int state);
+    void browseSaveFile();
   signals:
     void newSimFromDialog(std::string imgName);
 
   public:
     QString inputImage;
-    // QString outputPlot;
-    // bool saveToFile;
+    bool saveToFile;
+    QString outputPlot;
     // int numThreads;
   private:
     Ui::NewDialog *ui;

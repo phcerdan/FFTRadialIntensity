@@ -20,6 +20,7 @@
 #ifndef RADIALTABWIDGET_H_
 #define RADIALTABWIDGET_H_
 
+#include "QVTKWidget.h"
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
@@ -29,47 +30,47 @@
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QWidget>
-#include "QVTKWidget.h"
 
-//ITK
-#include <itkImageToVTKImageFilter.h>
+// ITK
 #include "image_functions.h"
-//VTK
-#include <vtkSmartPointer.h>
+#include <itkImageToVTKImageFilter.h>
+// VTK
 #include <vtkContextView.h>
-class RadialTabWidget : public QMainWindow
-{
+#include <vtkSmartPointer.h>
+class RadialTabWidget : public QMainWindow {
     Q_OBJECT
 
-public:
+ public:
     explicit RadialTabWidget(QWidget *parent = 0);
-    virtual  ~RadialTabWidget();
+    virtual ~RadialTabWidget();
     // Store images with double precission.
     using PixelType = double;
     using Image2DType = itk::Image<PixelType, 2>;
     using Image2DPointer = typename Image2DType::Pointer;
-    using ComplexImage2DType = typename itk::ForwardFFTImageFilter<Image2DType>::OutputImageType;
+    using ComplexImage2DType =
+        typename itk::ForwardFFTImageFilter<Image2DType>::OutputImageType;
     using ComplexImage2DPointer = typename ComplexImage2DType::Pointer;
 
     using VTKConnector2DType = itk::ImageToVTKImageFilter<Image2DType>;
     using VTKConnector2DPointer = typename VTKConnector2DType::Pointer;
-public slots:
+  public slots:
     void SetInput2D(std::string input_file);
     void SetFFT2D();
     void SetRadialPlot2D(double nm_per_pixel = 1.0);
-private:
+
+  private:
     std::string input_filename;
     Image2DPointer inputImage2D;
     ComplexImage2DPointer shiftedFFT2D;
     Image2DPointer magnitudeShiftedFFT2D;
     Image2DPointer magnitudeShiftedFFT2DLogWindowed;
     vtkSmartPointer<vtkContextView> plotView;
-private:
+
     QDockWidget *dockWidgetInput;
     QDockWidget *dockWidgetFFT;
     QDockWidget *dockWidgetPlot;
-    QVTKWidget  *qvtkWidgetInput;
-    QVTKWidget  *qvtkWidgetFFT;
-    QVTKWidget  *qvtkWidgetPlot;
+    QVTKWidget *qvtkWidgetInput;
+    QVTKWidget *qvtkWidgetFFT;
+    QVTKWidget *qvtkWidgetPlot;
 };
 #endif

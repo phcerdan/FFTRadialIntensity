@@ -20,6 +20,10 @@ struct HistoBins
     double bin_width;
 };
 using IntensitiesHistoPair = std::pair<Intensities, HistoBins>;
+enum IntensitiesHistoPairEnum {
+    INTENSITIES = 0,
+    HISTOBINS
+};
 
 /**
  * Return pixel values of image grouped by radial frequencies. We try to bin pixels into radial frequencies boxes.

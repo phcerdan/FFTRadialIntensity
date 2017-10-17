@@ -63,7 +63,6 @@ class MainWindow : public QMainWindow {
 
     QAction *openAct;
     QAction *exitAct;
-    QThread *thread_ = 0; // TODO:Use global pool thread?
     Ui::MainWindow *ui;
   private slots:
     void createNewDialog();

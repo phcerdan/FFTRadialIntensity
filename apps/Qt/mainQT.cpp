@@ -16,16 +16,14 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#include "mainwindow.h"
 #include "QApplication"
+#include "mainwindow.h"
 #include <iostream>
-int main (int argc, char **argv)
-{
+int main(int argc, char **argv) {
     QApplication app(argc, argv);
     app.setApplicationName("FFT-RadialIntensity");
     MainWindow mainWin;
 
     mainWin.show();
     app.exec();
-
 }

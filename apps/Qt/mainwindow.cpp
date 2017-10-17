@@ -16,18 +16,15 @@
  You should have received a copy of the GNU Lesser General Public License
  along with this library; if not, see <http://www.gnu.org/licenses/>.
 */
-#include <QtWidgets>
-#include <QtConcurrent/QtConcurrent>
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include "newdialog.h"
+#include "ui_mainwindow.h"
 #include <QVector>
-using namespace std;
+#include <QtConcurrent/QtConcurrent>
+#include <QtWidgets>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
-{
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     createActions();
     createToolBars();
@@ -38,34 +35,33 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget->clear();
 
     connect(ui->tabWidget, &QTabWidget::tabCloseRequested,
-            [=] (const int & index){
-            // std::cout << "Closing index: " << index << std::endl;
-            ui->tabWidget->removeTab(index);
-            // auto page = ui->tabWidget->widget(index);
-            // if (page != nullptr)
-            // {
-            //     page->deleteLater();
-            // }
-            }
-           );
+            [=](const int &index) {
+                // std::cout << "Closing index: " << index << std::endl;
+                ui->tabWidget->removeTab(index);
+                // auto page = ui->tabWidget->widget(index);
+                // if (page != nullptr)
+                // {
+                //     page->deleteLater();
+                // }
+            });
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
     delete openAct;
     delete exitAct;
-    if(simToolButton!=nullptr) delete simToolButton;
-    if(simActiveMenu!=nullptr) delete simActiveMenu;
-    for(QAction* & act : simActionMap.values())
-    {
+    if (simToolButton != nullptr)
+        delete simToolButton;
+    if (simActiveMenu != nullptr)
+        delete simActiveMenu;
+    for (QAction *&act : simActionMap.values()) {
         delete act;
     }
 }
 
-void MainWindow::createActions()
-{
-    openAct = new QAction(QIcon(":/resources/open.png"), tr("&Create a new FFT From Image."), this);
+void MainWindow::createActions() {
+    openAct = new QAction(QIcon(":/resources/open.png"),
+                          tr("&Create a new FFT From Image."), this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Create a new FFT From Image"));
     connect(openAct, SIGNAL(triggered()), this, SLOT(createNewDialog()));
@@ -74,38 +70,33 @@ void MainWindow::createActions()
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
-
 }
-void MainWindow::createToolBars()
-{
-    ui->toolBar->addAction(openAct);
-}
+void MainWindow::createToolBars() { ui->toolBar->addAction(openAct); }
 
-void MainWindow::createStatusBar()
-{
-    ui->statusbar->showMessage(tr("Ready"));
-}
+void MainWindow::createStatusBar() { ui->statusbar->showMessage(tr("Ready")); }
 
-void MainWindow::createNewDialog()
-{
-    NewDialog* newDialog = new NewDialog(this);
-    connect(newDialog, &NewDialog::newSimFromDialog, newDialog, &NewDialog::hide);
+void MainWindow::createNewDialog() {
+    NewDialog *newDialog = new NewDialog(this);
+    connect(newDialog, &NewDialog::newSimFromDialog, newDialog,
+            &NewDialog::hide);
     connect(newDialog, &NewDialog::newSimFromDialog, this, &MainWindow::newSim);
     newDialog->exec();
     delete newDialog;
 }
 
 // Note that widgets (tabs) must live in main thread.
-// If multi-thread is required, the computation should be handled in other thread, and report back to the tabWidget when finished.
-void MainWindow::newSim(std::string imgName)
-{
+// If multi-thread is required, the computation should be handled in other
+// thread, and report back to the tabWidget when finished.
+void MainWindow::newSim(std::string imgName) {
     // Always add a tab with newSim
     auto tab = new RadialTabWidget();
     // Populate the tab
-    connect(&this->fftWatcher, SIGNAL(finished()), tab, SLOT(SetRadialPlot2D()));
+    connect(&this->fftWatcher, SIGNAL(finished()), tab,
+            SLOT(SetRadialPlot2D()));
     {
         tab->SetInput2D(imgName);
-        QFuture<void> fftFuture = QtConcurrent::run(tab, &RadialTabWidget::SetFFT2D);
+        QFuture<void> fftFuture =
+            QtConcurrent::run(tab, &RadialTabWidget::SetFFT2D);
         fftWatcher.setFuture(fftFuture);
         // tab->SetFFT2D();
         // tab->SetRadialPlot2D();
@@ -115,7 +106,10 @@ void MainWindow::newSim(std::string imgName)
 
     tab->setObjectName(filename);
     ui->tabWidget->addTab(tab, filename);
-    ui->tabWidget->setTabText(ui->tabWidget->indexOf(tab), QApplication::translate("MainWindow", filename.toStdString().c_str(), Q_NULLPTR));
+    ui->tabWidget->setTabText(
+        ui->tabWidget->indexOf(tab),
+        QApplication::translate("MainWindow", filename.toStdString().c_str(),
+                                Q_NULLPTR));
     ui->tabWidget->setCurrentWidget(tab);
     ui->tabWidget->tabBar()->show();
 }
@@ -133,4 +127,3 @@ void MainWindow::newSim(std::string imgName)
 //     renderInputTypeImage();
 //     renderFFTWindowed();
 // }
-

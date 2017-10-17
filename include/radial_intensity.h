@@ -59,10 +59,9 @@ IntensitiesHistoPair ComputeRadialFrequencyIntensities(const ImageType * input_i
     int bins = std::numeric_limits<int>::max() ;
     for (unsigned int i = 0; i< ImageType::ImageDimension; ++i)
     {
-        // ceil to unify even and odd sizes.
         bins = std::min(static_cast<int>(region_size[i] / 2), bins);
+        // bins = s/2
     }
-    // --bins; // compensate the ceil.
     Intensities intensities;
     // + 1 because 0 index is special.
     intensities.resize(bins + 1);

@@ -52,25 +52,6 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     virtual ~MainWindow();
 
-    // template <typename InputImageType, typename OutputImageType = InputImageType>
-    // struct Result {
-    //     typename InputImageType::Pointer input;
-    //     typename OutputImageType::Pointer fft;
-    //     radial_intensity::IntensitiesHistoMetaTuple data;
-    // };
-
-// signals:
-    // void inputFilename();
-    // void runWorkerSim(std::string, std::string, int, bool );
-    // void currentSimSwitch(size_t);
-// private slots:
-    // void renderInputTypeImage();
-    // void writeFFTImageToDisk();
-    // void renderFFTWindowed();
-    // void ShowContextMenuQVTKFFT(const QPoint& pos);
-    // void workerSimHasFinished(std::shared_ptr<SAXSsim> inputSim);
-    // void on_currentSimSwitch(size_t);
-
 private:
     QToolButton* simToolButton;
     QMenu* simActiveMenu;

@@ -86,12 +86,6 @@ void MainWindow::createStatusBar()
     ui->statusbar->showMessage(tr("Ready"));
 }
 
-// void MainWindow::on_currentSimSwitch(size_t element)
-// {
-//     renderInputTypeImage();
-//     renderFFTWindowed();
-// }
-
 void MainWindow::createNewDialog()
 {
     NewDialog* newDialog = new NewDialog(this);
@@ -124,27 +118,6 @@ void MainWindow::newSim(std::string imgName)
     ui->tabWidget->setTabText(ui->tabWidget->indexOf(tab), QApplication::translate("MainWindow", filename.toStdString().c_str(), Q_NULLPTR));
     ui->tabWidget->setCurrentWidget(tab);
     ui->tabWidget->tabBar()->show();
-    // thread_    = new QThread(this);
-    // ui->scrollArea->show();
-    // workerSim_ = new WorkerSim;
-    // qRegisterMetaType<QString>();
-    // qRegisterMetaType<std::string>();
-    // qRegisterMetaType<std::shared_ptr<SAXSsim> >();;
-    // connect(this, &MainWindow::runWorkerSim,
-    //         workerSim_, &WorkerSim::runSim);
-    // connect(workerSim_, &WorkerSim::onFinishRun,
-    //         this,&MainWindow::workerSimHasFinished, Qt::BlockingQueuedConnection) ;
-
-    // connect( workerSim_, SIGNAL(onFinish()), thread_, SLOT(quit())) ;
-    // connect( workerSim_, SIGNAL(onFinish()), workerSim_, SLOT(deleteLater())) ;
-    // connect( thread_, SIGNAL(finished()), thread_, SLOT(deleteLater()) );
-    // workerSim_->moveToThread(thread_);
-    // thread_->start();
-
-    // openAct->setEnabled(false);
-    // emit(this->runWorkerSim(imgName, outputPlotName, num_threads, saveToFile));
-    // emit(this->runWorkerSimWithMessenger(imgName, outputPlotName, num_threads, saveToFile, ui->textEditConsole));
-
 }
 
 // void MainWindow::ShowContextMenuPlot(const QPoint& pos)
@@ -154,3 +127,10 @@ void MainWindow::newSim(std::string imgName)
 //     myMenu.addAction("Replot", this, SLOT(createRDialog())) ;
 //     myMenu.exec(globalPos);
 // }
+//
+// void MainWindow::on_currentSimSwitch(size_t element)
+// {
+//     renderInputTypeImage();
+//     renderFFTWindowed();
+// }
+

@@ -30,7 +30,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 # QT5_WRAP_UI(QT_UI_HEADERS mainwindow.ui)
 # QT5_ADD_RESOURCES(QT_RESOURCES resources.qrc)
-add_executable(FFTRadialIntensity mainwindow.cpp newdialog.cpp radialtabwidget.cpp resources.qrc mainQT.cpp) # newdialog.cpp rdialog.cpp WorkerSim.cpp)
+add_executable(FFTRadialIntensity mainwindow.cpp newdialog.cpp radialtabwidget.cpp resources.qrc mainQT.cpp)
 # include_directories(${IPP_LIB_FOLDER})
 target_link_libraries(FFTRadialIntensity
     ${Qt5Widgets_LIBRARIES}

@@ -66,9 +66,9 @@ void NewDialog::browseSaveFile() {
 void NewDialog::on_acceptedSettings() {
     inputImage = ui->inputTextEdit->toPlainText();
     outputPlot = ui->outputTextEdit->toPlainText();
-    saveToFile = ui->checkBoxSaveOutput;
+    saveToFile = ui->checkBoxSaveOutput->isChecked();
 
-    emit(newSimFromDialog(inputImage.toStdString()));
+    emit(newSimFromDialog(inputImage.toStdString(), saveToFile, outputPlot.toStdString()));
 }
 
 void NewDialog::on_changedCheckBoxSave(int state) {

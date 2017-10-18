@@ -21,7 +21,6 @@
 
 #include "saxs_sim_functional.h"
 #include <QDialog>
-#include <QFutureWatcher>
 #include <QMainWindow>
 #include <QString>
 #include <QToolButton>
@@ -54,7 +53,6 @@ class MainWindow : public QMainWindow {
     QToolButton *simToolButton;
     QMenu *simActiveMenu;
     QHash<int, QAction *> simActionMap;
-    QFutureWatcher<void> fftWatcher;
 
     void createActions();
     void createToolBars();
@@ -66,6 +64,6 @@ class MainWindow : public QMainWindow {
     Ui::MainWindow *ui;
   private slots:
     void createNewDialog();
-    void newSim(std::string imgName);
+    void newSim(std::string inputImageFileName, bool saveToFile, std::string outputPlotFileName);
 };
 #endif /* MAINWINDOW_H_ */

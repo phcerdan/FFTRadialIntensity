@@ -102,6 +102,7 @@ IntensitiesHistoPair ComputeRadialFrequencyIntensities(const ImageType * input_i
 FlattenIntensities AverageRadialFrequencyIntensities(const Intensities & intensities);
 void PrintIntensitiesHisto(const Intensities & intensities, const HistoBins & histo_bins, std::ostream & os = std::cout);
 bool fileExists(const char *fileName);
+
 struct MetadataFields {
     std::string name;
     std::vector<int> size;

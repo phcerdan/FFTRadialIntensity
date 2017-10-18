@@ -44,6 +44,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include <QtConcurrent/QtConcurrent>
+
 RadialTabWidget::RadialTabWidget(QWidget *parent) : QMainWindow(parent) {
     // UI
     {
@@ -99,10 +101,10 @@ RadialTabWidget::RadialTabWidget(QWidget *parent) : QMainWindow(parent) {
         qvtkWidgetPlot->setObjectName(QStringLiteral("qvtkWidgetPlot"));
         dockWidgetPlot->setWidget(qvtkWidgetPlot);
         {
-            plotView = vtkSmartPointer<vtkContextView>::New();
-            plotView->SetInteractor(this->qvtkWidgetPlot->GetInteractor());
-            this->qvtkWidgetPlot->SetRenderWindow(plotView->GetRenderWindow());
-            plotView->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+            this->plotView = vtkSmartPointer<vtkContextView>::New();
+            this->plotView->SetInteractor(this->qvtkWidgetPlot->GetInteractor());
+            this->qvtkWidgetPlot->SetRenderWindow(this->plotView->GetRenderWindow());
+            this->plotView->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
         }
     } // end UI
 
@@ -189,39 +191,44 @@ void RadialTabWidget::SetFFT2D() {
     // renderer->Render();
 }
 
-void RadialTabWidget::SetRadialPlot2D(double nm_per_pixel) {
+void RadialTabWidget::ComputeRadialIntenstiyFromFFT() {
     using FrequencyImageIterator =
         itk::FrequencyShiftedFFTLayoutImageRegionConstIteratorWithIndex<
             Image2DType>;
-    const auto intensities_histo =
+    this->intensities_histo =
         radial_intensity::ComputeRadialFrequencyIntensities<
             Image2DType, FrequencyImageIterator>(this->magnitudeShiftedFFT2D);
-    const auto &avg_intensities =
+    this->average_radial_intensities =
         radial_intensity::AverageRadialFrequencyIntensities(
-            std::get<0>(intensities_histo));
-    auto ibins = avg_intensities.size();
+            std::get<radial_intensity::INTENSITIES>(this->intensities_histo));
+    emit(this->finished_ComputeRadialIntensity());
+}
+
+void RadialTabWidget::SetRadialPlot2D() {
+    // pre: it needs a call of ComputeRadialIntensityFromFFT
+    auto ibins = this->average_radial_intensities.size();
     auto nbins = ibins > 0 ? ibins - 1 : 0;
-    const auto &histo_bins = std::get<1>(intensities_histo);
+    const auto &histo_bins = std::get<radial_intensity::HISTOBINS>(this->intensities_histo);
     // Create the vtk chart:
     // Populate the table
     vtkNew<vtkTable> table;
     table->SetNumberOfRows(nbins);
-    vtkNew<vtkDoubleArray> qArray;
-    qArray->SetName("k [ ]");
-    qArray->SetNumberOfValues(nbins);
-    table->AddColumn(qArray.GetPointer());
+    vtkNew<vtkDoubleArray> kArray;
+    kArray->SetName("k");
+    kArray->SetNumberOfValues(nbins);
+    table->AddColumn(kArray.GetPointer());
     vtkNew<vtkDoubleArray> intensityArray;
-    intensityArray->SetName("I [A.U]");
+    intensityArray->SetName("I");
     intensityArray->SetNumberOfValues(nbins);
     table->AddColumn(intensityArray.GetPointer());
-    double df = histo_bins.bin_width / nm_per_pixel;
+    double df = histo_bins.bin_width;
     for (std::size_t j = 0; j < nbins; j++) {
         // Ignore the first (zero freq) value.
-        intensityArray->SetValue(j, avg_intensities[j + 1]);
-        qArray->SetValue(j, (j + 1) * df);
+        intensityArray->SetValue(j, average_radial_intensities[j + 1]);
+        kArray->SetValue(j, (j + 1) * df);
     }
     // avoid log-scale problems with 0
-    // qArray->SetValue(0, std::numeric_limits<double>::epsilon());
+    // kArray->SetValue(0, std::numeric_limits<double>::epsilon());
 
     auto chart = vtkSmartPointer<vtkChartXY>::New();
     auto chart_type = vtkChart::LINE;
@@ -231,23 +238,25 @@ void RadialTabWidget::SetRadialPlot2D(double nm_per_pixel) {
     plotView->GetScene()->AddItem(chart);
 
     auto const &xAxis = chart->GetAxis(vtkAxis::BOTTOM);
-    xAxis->SetTitle("q");
+    xAxis->SetTitle("k [cycles/px]");
     xAxis->LogScaleOn();
     xAxis->RecalculateTickSpacing();
     // xAxis->SetBehavior(vtkAxis::FIXED);
     auto const &yAxis = chart->GetAxis(vtkAxis::LEFT);
-    yAxis->SetTitle("I");
+    yAxis->SetTitle("I [A.U]");
     yAxis->LogScaleOn();
     yAxis->RecalculateTickSpacing();
     // chart->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
 
     this->qvtkWidgetPlot->GetInteractor()->Initialize();
 
-    // this->SaveRadialPlot(avg_intensities, this->
 }
 
-void RadialTabWidget::SaveRadialPlot2D(const radial_intensity::FlattenIntensities & mean_intensities, const std::string &fname, const radial_intensity::MetadataFields &metadata_fields)
+void RadialTabWidget::SaveRadialPlot2D(const std::string &fname)
 {
+    qDebug() << "saveToFile " << this->saveToFile << " ; fname " << fname.c_str();
+    if (!this->saveToFile)
+        return;
     namespace fs = boost::filesystem;
     const fs::path opath{fname};
     const fs::path abs_opath = fs::absolute(opath);
@@ -255,9 +264,38 @@ void RadialTabWidget::SaveRadialPlot2D(const radial_intensity::FlattenIntensitie
     if (!fs::exists(dir))
         fs::create_directory(dir);
 
-    radial_intensity::SaveRadialIntensityProfile(mean_intensities, opath.string(), metadata_fields);
+    // Save metadata from input image.
+    radial_intensity::MetadataFields meta;
+    const fs::path ipath{this->input_filename};
+    meta.name = ipath.filename().string();
+    auto itk_size = this->inputImage2D->GetLargestPossibleRegion().GetSize();
+    for (unsigned int i = 0; i < this->inputImage2D->ImageDimension; ++i)
+    {
+        meta.size.push_back(itk_size[i]);
+    }
+
+    radial_intensity::SaveRadialIntensityProfile(this->average_radial_intensities, opath.string(), meta);
 }
-// //Delete old chart and add new.
-//   view_[find_degree->first]->GetScene()->RemoveItem(static_cast<unsigned int>
-//   (0)); view_[find_degree->first]->GetScene()->AddItem(chart);
-//   this->qvtkWidgetPlot->update();
+
+void RadialTabWidget::StoreInputParameters(
+        const std::string & input_filename,
+        bool saveToFile,
+        const std::string & output_filename){
+    this->input_filename = input_filename;
+    this->saveToFile = saveToFile;
+    this->output_filename = output_filename;
+}
+
+void RadialTabWidget::Populate() {
+    // pre: Needs StoreInputParameters
+    connect(&this->fftWatcher, SIGNAL(finished()), this,
+            SLOT(ComputeRadialIntenstiyFromFFT()));
+    connect(this, SIGNAL(finished_ComputeRadialIntensity()),
+         this, SLOT(SetRadialPlot2D()));
+    connect(this, &RadialTabWidget::finished_ComputeRadialIntensity,
+            [this](){this->SaveRadialPlot2D(this->output_filename);});
+    this->SetInput2D(this->input_filename);
+    QFuture<void> fftFuture =
+        QtConcurrent::run(this, &RadialTabWidget::SetFFT2D);
+    fftWatcher.setFuture(fftFuture);
+}

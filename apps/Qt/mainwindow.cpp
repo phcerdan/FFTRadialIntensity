@@ -83,24 +83,14 @@ void MainWindow::createNewDialog() {
     newDialog->exec();
     delete newDialog;
 }
-
 // Note that widgets (tabs) must live in main thread.
 // If multi-thread is required, the computation should be handled in other
 // thread, and report back to the tabWidget when finished.
-void MainWindow::newSim(std::string inputImageName) {
+void MainWindow::newSim(std::string inputImageName, bool saveToFile, std::string outputPlotName) {
     // Always add a tab with newSim
-    auto tab = new RadialTabWidget();
-    // Populate the tab
-    connect(&this->fftWatcher, SIGNAL(finished()), tab,
-            SLOT(SetRadialPlot2D()));
-    {
-        tab->SetInput2D(inputImageName);
-        QFuture<void> fftFuture =
-            QtConcurrent::run(tab, &RadialTabWidget::SetFFT2D);
-        fftWatcher.setFuture(fftFuture);
-        // tab->SetFFT2D();
-        // tab->SetRadialPlot2D();
-    }
+    auto tab = new RadialTabWidget(this);
+    tab->StoreInputParameters(inputImageName, saveToFile, outputPlotName);
+    tab->Populate();
     auto info = QFileInfo(QString::fromLocal8Bit(inputImageName.c_str()));
     auto filename = info.fileName();
 

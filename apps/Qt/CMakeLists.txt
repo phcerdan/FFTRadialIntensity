@@ -32,14 +32,15 @@ set(CMAKE_AUTORCC ON)
 # QT5_ADD_RESOURCES(QT_RESOURCES resources.qrc)
 add_executable(FFTRadialIntensity mainwindow.cpp newdialog.cpp radialtabwidget.cpp resources.qrc mainQT.cpp)
 # include_directories(${IPP_LIB_FOLDER})
+target_link_libraries(FFTRadialIntensity radial_intensity-dev)
 target_link_libraries(FFTRadialIntensity
     ${Qt5Widgets_LIBRARIES}
     ${Qt5PrintSupport_LIBRARIES}
     ${Qt5Svg_LIBRARIES}
     ${Qt5DBus_LIBRARIES}
     )
-target_link_libraries(FFTRadialIntensity SAXSsim-dev)
-target_link_libraries(FFTRadialIntensity radial_intensity-dev)
+# target_link_libraries(FFTRadialIntensity
+target_link_libraries(FFTRadialIntensity ${ITK_LIBRARIES})
 target_link_libraries(FFTRadialIntensity ${VTK_LIBRARIES})
 file(COPY ${CMAKE_SOURCE_DIR}/scripts DESTINATION ${EXECUTABLE_OUTPUT_PATH} )
 

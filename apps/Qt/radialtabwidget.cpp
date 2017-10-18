@@ -42,9 +42,10 @@
 #include <vtkPlot.h>
 #include <vtkTable.h>
 
-#include <boost/filesystem.hpp>
-
 #include <QtConcurrent/QtConcurrent>
+#include <QFileInfo>
+#include <QDir>
+
 
 RadialTabWidget::RadialTabWidget(QWidget *parent) : QMainWindow(parent) {
     // UI
@@ -257,24 +258,22 @@ void RadialTabWidget::SaveRadialPlot2D(const std::string &fname)
     qDebug() << "saveToFile " << this->saveToFile << " ; fname " << fname.c_str();
     if (!this->saveToFile)
         return;
-    namespace fs = boost::filesystem;
-    const fs::path opath{fname};
-    const fs::path abs_opath = fs::absolute(opath);
-    const auto dir = abs_opath.parent_path();
-    if (!fs::exists(dir))
-        fs::create_directory(dir);
+    const QFileInfo ofile(fname.c_str());
+    const QDir odir(ofile.dir());
+    if (!odir.exists())
+        odir.mkpath(".");
 
     // Save metadata from input image.
     radial_intensity::MetadataFields meta;
-    const fs::path ipath{this->input_filename};
-    meta.name = ipath.filename().string();
+    QFileInfo ifile(this->input_filename.c_str());
+    meta.name = ifile.fileName().toStdString();
     auto itk_size = this->inputImage2D->GetLargestPossibleRegion().GetSize();
     for (unsigned int i = 0; i < this->inputImage2D->ImageDimension; ++i)
     {
         meta.size.push_back(itk_size[i]);
     }
 
-    radial_intensity::SaveRadialIntensityProfile(this->average_radial_intensities, opath.string(), meta);
+    radial_intensity::SaveRadialIntensityProfile(this->average_radial_intensities, ofile.filePath().toStdString(), meta);
 }
 
 void RadialTabWidget::StoreInputParameters(

@@ -1,5 +1,4 @@
 add_subdirectory(Cli)
-add_subdirectory(SingleImagesFromMontage)
 if(ENABLE_QT)
     add_subdirectory(Qt)
 endif()

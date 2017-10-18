@@ -1,2 +1,0 @@
-add_executable(singleImagesFromMontage singleImagesFromMontage.cpp)
-target_link_libraries(singleImagesFromMontage SAXSsim-dev)

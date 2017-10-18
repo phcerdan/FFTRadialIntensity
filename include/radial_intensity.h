@@ -25,6 +25,15 @@ enum IntensitiesHistoPairEnum {
     HISTOBINS
 };
 
+struct MetadataFields {
+    std::string name;
+    std::vector<int> size;
+};
+
+bool fileExists(const char *fileName);
+// Precondition: assume file can be created: \sa fileExists
+void SaveRadialIntensityProfile(const FlattenIntensities & mean_intensities, const std::string &fname, const MetadataFields &metadata_fields);
+
 /**
  * Return pixel values of image grouped by radial frequencies. We try to bin pixels into radial frequencies boxes.
  * Given an input_img of float pixel types, returns a vector with intensities at different radius.
@@ -101,15 +110,6 @@ IntensitiesHistoPair ComputeRadialFrequencyIntensities(const ImageType * input_i
 
 FlattenIntensities AverageRadialFrequencyIntensities(const Intensities & intensities);
 void PrintIntensitiesHisto(const Intensities & intensities, const HistoBins & histo_bins, std::ostream & os = std::cout);
-bool fileExists(const char *fileName);
-
-struct MetadataFields {
-    std::string name;
-    std::vector<int> size;
-};
-
-// Precondition: assume file can be created: \sa fileExists
-void SaveRadialIntensityProfile(const FlattenIntensities & mean_intensities, const std::string &fname, const MetadataFields &metadata_fields);
 
 } // end namespace
 #endif

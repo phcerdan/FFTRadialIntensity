@@ -45,7 +45,7 @@ void SaveRadialIntensityProfile(const FlattenIntensities & mean_intensities, con
     std::ofstream output_file (fname); // delete everything inside the file(default)
 
     if (!output_file.is_open()) {
-        perror( ("Error creating IvsQ file in " + fname).c_str());
+        perror( ("Error creating IvsK file in " + fname).c_str());
     }
     output_file << "# input_file=" << metadata_fields.name << std::endl;
     output_file << "# Nx=" << metadata_fields.size[0] << std::endl;
@@ -58,7 +58,7 @@ void SaveRadialIntensityProfile(const FlattenIntensities & mean_intensities, con
     }
 
     if(output_file.bad()){
-        perror( ("Error saving RadialIntensityProfile (I vs q) file in " + fname ).c_str());
+        perror( ("Error saving RadialIntensityProfile (I vs k) file in " + fname ).c_str());
     }
     output_file.close();
 }

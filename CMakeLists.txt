@@ -83,11 +83,6 @@ LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib"
 if("${isSystemDir}" STREQUAL "-1")
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
-## Common functions. Cannot create a library in subfolder and then share with other subdirectories.
-add_library(SAXSsim-dev ${CMAKE_CURRENT_SOURCE_DIR}/src/SAXSsim.cpp)
-target_link_libraries(SAXSsim-dev ${Boost_LIBRARIES})
-target_link_libraries(SAXSsim-dev ${ITK_LIBRARIES} )
-install(TARGETS SAXSsim-dev DESTINATION lib OPTIONAL)
 
 add_library(radial_intensity-dev ${CMAKE_CURRENT_SOURCE_DIR}/src/radial_intensity.cpp)
 install(TARGETS radial_intensity-dev DESTINATION lib OPTIONAL)

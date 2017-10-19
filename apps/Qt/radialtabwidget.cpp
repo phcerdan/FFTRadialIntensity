@@ -45,6 +45,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QFileInfo>
 #include <QDir>
+#include <QMenu>
 
 
 RadialTabWidget::RadialTabWidget(QWidget *parent) : QMainWindow(parent) {
@@ -59,18 +60,22 @@ RadialTabWidget::RadialTabWidget(QWidget *parent) : QMainWindow(parent) {
         this->centralWidget()->setMaximumSize(0, 0);
 
         dockWidgetInput = new QDockWidget(parent);
+        dockWidgetInput->setWindowTitle("Image");
         dockWidgetInput->setAllowedAreas(Qt::TopDockWidgetArea);
         dockWidgetInput->setObjectName(QStringLiteral("dockWidgetInput"));
         this->addDockWidget(Qt::TopDockWidgetArea, dockWidgetInput);
 
         dockWidgetFFT = new QDockWidget(parent);
+        dockWidgetFFT->setWindowTitle("FFT\u00B2");
         dockWidgetFFT->setAllowedAreas(Qt::TopDockWidgetArea);
         dockWidgetFFT->setObjectName(QStringLiteral("dockWidgetFFT"));
         this->addDockWidget(Qt::TopDockWidgetArea, dockWidgetFFT);
 
         dockWidgetPlot = new QDockWidget(parent);
+        dockWidgetPlot->setWindowTitle("Plot");
         dockWidgetPlot->setAllowedAreas(Qt::TopDockWidgetArea);
         dockWidgetPlot->setObjectName(QStringLiteral("dockWidgetPlot"));
+
         this->addDockWidget(Qt::TopDockWidgetArea, dockWidgetPlot);
         // this->addDockWidget(static_cast<Qt::DockWidgetArea>(1),
         // dockWidget_9);
@@ -298,3 +303,4 @@ void RadialTabWidget::Populate() {
         QtConcurrent::run(this, &RadialTabWidget::SetFFT2D);
     fftWatcher.setFuture(fftFuture);
 }
+

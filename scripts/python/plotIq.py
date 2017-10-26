@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import math
 import pandas as pd
 from itertools import takewhile
 import matplotlib
@@ -115,7 +116,29 @@ def scale_data(data, nm_per_pixel=1, I_multiplier=1):
     out_data = data
     out_data['q'] *= dq
     out_data['I'] *= I_multiplier
+    #TODO multiply q for 2xpi here instead of __main__
     return out_data
+
+def create_reciprocal_axis( ax_original ):
+    # Create top x axis with space values:
+    # https://stackoverflow.com/questions/28112217/matplotlib-second-x-axis-with-transformed-values
+    def reciprocal_labels( ticks, angular = True ):
+        V = 1.0/ticks
+        if angular:
+            V *= 2*math.pi
+        return ["$%.2f$" % z for z in V]
+
+    axtop = ax_original.twiny()
+    axtop.set_xscale(ax_original.get_xscale())
+    axtop.set_xticks(ax_original.get_xticks())
+    axtop.set_xbound(ax_original.get_xbound())
+    axtop.set_xticklabels(reciprocal_labels(ax_original.get_xticks()),
+                          fontsize=13)
+                          #fontsize = ax_original.xaxis.get_label().get_fontsize())
+    axtop.set_xlabel("d [$nm$]",
+                     fontsize = 16)
+                     #fontsize = ax_original.title.get_fontsize()
+    return axtop
 
 def plot_params(dict_more_params={}):
     # Paper quality options: {{{
@@ -173,7 +196,7 @@ def plot_data(data, axes=None, plot_name='', label=''):
 def plot_vline(qcutoff, data, ax):
     # Vertical line:
     # ax.axvline(x=qcutoff, linestyle='dotted', color='gray')
-    ax.axvspan(xmin=qcutoff, xmax=max(data['q']), color='whitesmoke')
+    ax.axvspan(xmin=qcutoff, xmax=ax.get_xlim()[1], color='whitesmoke')
     return ax
 
 def plot_all_and_save(data, qcutoff=0.1, axes=None,
@@ -181,7 +204,7 @@ def plot_all_and_save(data, qcutoff=0.1, axes=None,
                       show=True):
     ax = plot_data(data, plot_name=plot_name, axes=axes)
     ax = plot_vline(qcutoff, data, ax)
-
+    create_reciprocal_axis(ax)
     if(output_file):
         if(output_format != 'tikz'):
             plt.savefig(output_file + '.' + output_format, format=output_format)
@@ -208,6 +231,7 @@ if __name__ == "__main__":
     header_dicto = parse_header(input_file, is_csv)
     data = parse_data(input_file, is_csv)
     data = scale_data(data, nm_per_pixel, intensity_multiplier)
+    data['q'] *= 2.0 * math.pi
     plot_all_and_save(data,
                       qcutoff=qcutoff,
                       plot_name='',

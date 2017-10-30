@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import scipy.optimize as optim
@@ -94,28 +95,39 @@ ax.xaxis.grid(True, which='major')
 ax.xaxis.set_minor_formatter(matplotlib.ticker.FormatStrFormatter(""))
 # End pretty plotting }}}
 
-plt.plot(data['q'], 10**-0.1 * data['I'], figure=fig, label='original')
+# shift_data_factor = 1.0
+shift_data_factor = 10**-0.1
+plt.plot(data['q'], shift_data_factor * data['I'], figure=fig, label='original')
 regionL = data.query('@q_L_discard <= q <= @q_L_M')
 regionM = data.query('@q_L_M + @q_L_M_transition_region <= q <= @q_M_H')
 regionH = data.query('@q_M_H + @q_M_H_transition_region <= q <= @q_H_discard')
 print("Sizes:\n", "L", regionL.size, "M", regionM.size, "H", regionH.size)
 
 regionL_popt, regionL_pcov = optim.curve_fit(power_func, regionL['q'], regionL['I'])
+regionL_perr = np.sqrt(np.diag(regionL_pcov))
 print("=======LOW======")
 print("FitResult A * x**B:\n","Fit: A,B:", regionL_popt, "\nCov:", regionL_pcov)
+print("One std-dev error for A, B: ", regionL_perr)
 regionM_popt, regionM_pcov = optim.curve_fit(power_func, regionM['q'], regionM['I'])
+regionM_perr = np.sqrt(np.diag(regionM_pcov))
 print("=======MEDIUM======")
 print("FitResult A * x**B:\n","Fit: A,B:", regionM_popt, "\nCov:", regionM_pcov)
+print("One std-dev error for A, B: ", regionM_perr)
 regionH_popt, regionH_pcov = optim.curve_fit(power_func, regionH['q'], regionH['I'])
+regionH_perr = np.sqrt(np.diag(regionH_pcov))
 print("=======HIGH======")
 print("FitResult A * x**B:\n","Fit: A,B:", regionH_popt, "\nCov:", regionH_pcov)
+print("One std-dev error for A, B: ", regionH_perr)
 
+#========LOW========#
 xdata = regionL['q']
 popt = regionL_popt
 plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='fit:A=%5.3f, B=%5.3f' % tuple(popt))
+#========MEDIUM========#
 xdata = regionM['q']
 popt = regionM_popt
 plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='fit:A=%5.3f, B=%5.3f' % tuple(popt))
+#========HIGH========#
 xdata = regionH['q']
 popt = regionH_popt
 plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='fit:A=%5.3f, B=%5.3f' % tuple(popt))

@@ -48,18 +48,18 @@ q_high_end = 3.7 * 10**-1
 q_noisy_cutoff = 4 * 10**-1
 
 # Choose one:
-data = carK_saxs_data
-title = 'carK'
-output_filename = "saxs-tem-carK_fit.pdf"
+data = pectin_saxs_data
+title = 'pectin'
+output_filename = "saxs-tem-pectin_fit.pdf"
 # Q Thresholds to separate regions (different fits for regions)
 # Eyeball fit, change depending on data set
-q_low_begin = carK_saxs_data['q'][0]
-q_low_end = carK_saxs_data['q'][20]
-q_intermediate_begin = carK_saxs_data['q'][27]
-q_intermediate_end = carK_saxs_data['q'][140]
-q_high_begin = carK_saxs_data['q'][157]
-q_high_end = carK_saxs_data['q'][256]
-q_noisy_cutoff = 5 * 10**-1
+q_low_begin = 10**-3
+q_low_end =  7 * 10**-3
+q_intermediate_begin = 4 * 10**-2
+q_intermediate_end = 1.55 * 10**-1
+q_high_begin = 1.9 * 10**-1
+q_high_end = 3.7 * 10**-1
+q_noisy_cutoff = 4 * 10**-1
 
 def power_func(x,A,B):
     return A * x**B
@@ -102,7 +102,7 @@ ax.xaxis.set_minor_formatter(matplotlib.ticker.FormatStrFormatter(""))
 # shift_data_factor = 1.0
 shift_data_factor = 10**-0.1
 region_all = data.query('q <= @q_noisy_cutoff')
-plt.plot(region_all['q'], shift_data_factor * region_all['I'], figure=fig, label='original')
+plt.plot(region_all['q'], shift_data_factor * region_all['I'], figure=fig, label='saxs')
 regionL = data.query('@q_low_begin <= q <= @q_low_end')
 regionM = data.query('@q_intermediate_begin <= q <= @q_intermediate_end')
 regionH = data.query('@q_high_begin <= q <= @q_high_end')
@@ -129,19 +129,20 @@ xdata = regionL['q']
 popt = regionL_popt
 perr = regionL_perr
 b_value_error = [ popt[1], perr[1] ]
-plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='fit: B=%5.3f (%2.8f)' % tuple(b_value_error))
+# plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='fit: B=%3.3f (%2.8f)' % tuple(b_value_error))
+plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='low-q: B=%3.3f (%1.3f)' % tuple(b_value_error))
 #========MEDIUM========#
 xdata = regionM['q']
 popt = regionM_popt
 perr = regionM_perr
 b_value_error = [ popt[1], perr[1] ]
-plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='fit: B=%5.3f (%2.8f)' % tuple(b_value_error))
+plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='int-q: B=%3.3f (%1.3f)' % tuple(b_value_error))
 #========HIGH========#
 xdata = regionH['q']
 popt = regionH_popt
 perr = regionH_perr
 b_value_error = [ popt[1], perr[1] ]
-plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='fit: B=%5.3f (%2.8f)' % tuple(b_value_error))
+plt.plot(xdata, power_func(xdata, *popt), '--', figure=fig, label='high-q: B=%3.3f (%1.3f)' % tuple(b_value_error))
 
 # Give some space to the limits (pretty plotting)
 ylim_new = (ax.get_ylim()[0] - 0.9 * ax.get_ylim()[0],

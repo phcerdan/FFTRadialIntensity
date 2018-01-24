@@ -10,9 +10,9 @@ def parse_saxs_data(input_file, nskiprows=1):
                        names=['q', 'I'], usecols=[0, 1])
     return data
 
-data_path  = "/home/phc/repository_local/FFT-from-image-compute-radial-intensity/src/resultsPaper/"
+data_path   = "/home/phc/repository_local/FFT-from-image-compute-radial-intensity/src/resultsPaper/"
 #output:
-output_path = "/home/phc/repository_local/saxstem_compute/"
+output_path = "/home/phc/repository_local/FFT-from-image-compute-radial-intensity/src/resultsPaper/saxs_fit/"
 
 # carK
 carK_saxs_file = os.path.join(data_path, "saxs/Carragenan_K_1car30KCl10A_merged.dat")

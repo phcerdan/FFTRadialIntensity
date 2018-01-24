@@ -119,7 +119,7 @@ def scale_data(data, nm_per_pixel=1, I_multiplier=1):
     #TODO multiply q for 2xpi here instead of __main__
     return out_data
 
-def create_reciprocal_axis( ax_original ):
+def create_reciprocal_axis( ax_original, tick_label_size = 13, x_label_size = 16 ):
     # Create top x axis with space values:
     # https://stackoverflow.com/questions/28112217/matplotlib-second-x-axis-with-transformed-values
     def reciprocal_labels( ticks, angular = True ):
@@ -133,10 +133,10 @@ def create_reciprocal_axis( ax_original ):
     axtop.set_xticks(ax_original.get_xticks())
     axtop.set_xbound(ax_original.get_xbound())
     axtop.set_xticklabels(reciprocal_labels(ax_original.get_xticks()),
-                          fontsize=13)
+                          fontsize=tick_label_size)
                           #fontsize = ax_original.xaxis.get_label().get_fontsize())
     axtop.set_xlabel("d [$nm$]",
-                     fontsize = 16)
+                     fontsize = x_label_size)
                      #fontsize = ax_original.title.get_fontsize()
     return axtop
 
